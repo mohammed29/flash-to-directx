@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="Library"
-	ProjectGUID="{05F771C3-DD6E-4AA2-8791-7231C8836B7F}"
-	RootNamespace="Library"
+	Name="GUI"
+	ProjectGUID="{2D9BC145-14FF-4B62-8738-E764FC669DEF}"
+	RootNamespace="GUI"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -21,9 +21,9 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\Lib"
-			IntermediateDirectory="..\..\Temp\$(SolutionName)_$(ProjectName)_$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="4"
+			OutputDirectory="..\..\Bin\"
+			IntermediateDirectory="..\..\..\Temp\$(SolutionName)_$(ProjectName)_$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="1"
 			CharacterSet="1"
 			>
 			<Tool
@@ -44,15 +44,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				AdditionalIncludeDirectories="$(DXSDK_DIR)Include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;CONFIGURATION_NAME=\&quot;$(ConfigurationName)\&quot;;PLATFORM_NAME=\&quot;$(PlatformName)\&quot;"
+				StringPooling="true"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				EnableEnhancedInstructionSet="2"
 				UsePrecompiledHeader="2"
-				ProgramDataBaseFileName="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).pdb"
 				WarningLevel="3"
 				WarnAsError="true"
-				DebugInformationFormat="3"
+				DebugInformationFormat="4"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -64,11 +66,20 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).lib"
+				Name="VCLinkerTool"
+				AdditionalDependencies="d3d9.lib d3dx9.lib dxguid.lib"
+				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).exe"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories="..\..\Lib;&quot;$(DXSDK_DIR)Lib\x86&quot;"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -78,6 +89,9 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -85,9 +99,9 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="..\Lib"
-			IntermediateDirectory="..\..\Temp\$(SolutionName)_$(ProjectName)_$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="4"
+			OutputDirectory="..\..\Bin\"
+			IntermediateDirectory="..\..\..\Temp\$(SolutionName)_$(ProjectName)_$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="1"
 			CharacterSet="1"
 			>
 			<Tool
@@ -109,12 +123,13 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				AdditionalIncludeDirectories="$(DXSDK_DIR)Include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;CONFIGURATION_NAME=\&quot;$(ConfigurationName)\&quot;;PLATFORM_NAME=\&quot;$(PlatformName)\&quot;"
+				StringPooling="true"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				ProgramDataBaseFileName="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).pdb"
 				WarningLevel="3"
 				WarnAsError="true"
 				DebugInformationFormat="3"
@@ -129,11 +144,20 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).lib"
+				Name="VCLinkerTool"
+				AdditionalDependencies="d3d9.lib d3dx9.lib dxguid.lib"
+				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).exe"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories="..\..\Lib;&quot;$(DXSDK_DIR)Lib\x64&quot;"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				TargetMachine="17"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -143,6 +167,9 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -150,9 +177,9 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\Lib"
-			IntermediateDirectory="..\..\Temp\$(SolutionName)_$(ProjectName)_$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="4"
+			OutputDirectory="..\..\Bin\"
+			IntermediateDirectory="..\..\..\Temp\$(SolutionName)_$(ProjectName)_$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="1"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -178,13 +205,14 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				AdditionalIncludeDirectories="$(DXSDK_DIR)Include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;CONFIGURATION_NAME=\&quot;$(ConfigurationName)\&quot;;PLATFORM_NAME=\&quot;$(PlatformName)\&quot;"
 				StringPooling="true"
 				RuntimeLibrary="2"
+				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="2"
 				UsePrecompiledHeader="2"
-				ProgramDataBaseFileName="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).pdb"
 				WarningLevel="3"
 				WarnAsError="true"
 				DebugInformationFormat="3"
@@ -199,11 +227,22 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).lib"
+				Name="VCLinkerTool"
+				AdditionalDependencies="d3d9.lib d3dx9.lib dxguid.lib"
+				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).exe"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\Lib;&quot;$(DXSDK_DIR)Lib\x86&quot;"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -213,6 +252,9 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -220,9 +262,9 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="..\Lib"
-			IntermediateDirectory="..\..\Temp\$(SolutionName)_$(ProjectName)_$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="4"
+			OutputDirectory="..\..\Bin\"
+			IntermediateDirectory="..\..\..\Temp\$(SolutionName)_$(ProjectName)_$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="1"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -249,12 +291,13 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				AdditionalIncludeDirectories="$(DXSDK_DIR)Include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;CONFIGURATION_NAME=\&quot;$(ConfigurationName)\&quot;;PLATFORM_NAME=\&quot;$(PlatformName)\&quot;"
 				StringPooling="true"
 				RuntimeLibrary="2"
+				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="2"
-				ProgramDataBaseFileName="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).pdb"
 				WarningLevel="3"
 				WarnAsError="true"
 				DebugInformationFormat="3"
@@ -269,11 +312,22 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).lib"
+				Name="VCLinkerTool"
+				AdditionalDependencies="d3d9.lib d3dx9.lib dxguid.lib"
+				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).exe"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\Lib;&quot;$(DXSDK_DIR)Lib\x64&quot;"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="17"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -285,14 +339,17 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Profile|Win32"
-			OutputDirectory="..\Lib"
-			IntermediateDirectory="..\..\Temp\$(SolutionName)_$(ProjectName)_$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="4"
+			OutputDirectory="..\..\Bin\"
+			IntermediateDirectory="..\..\..\Temp\$(SolutionName)_$(ProjectName)_$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="1"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -317,13 +374,14 @@
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				AdditionalIncludeDirectories="$(DXSDK_DIR)Include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;CONFIGURATION_NAME=\&quot;$(ConfigurationName)\&quot;;PLATFORM_NAME=\&quot;$(PlatformName)\&quot;"
 				StringPooling="true"
 				RuntimeLibrary="2"
+				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="2"
 				UsePrecompiledHeader="2"
-				ProgramDataBaseFileName="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).pdb"
 				WarningLevel="3"
 				WarnAsError="true"
 				DebugInformationFormat="3"
@@ -338,11 +396,22 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).lib"
+				Name="VCLinkerTool"
+				AdditionalDependencies="d3d9.lib d3dx9.lib dxguid.lib"
+				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).exe"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\Lib;&quot;$(DXSDK_DIR)Lib\x86&quot;"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -354,14 +423,17 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Profile|x64"
-			OutputDirectory="..\Lib"
-			IntermediateDirectory="..\..\Temp\$(SolutionName)_$(ProjectName)_$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="4"
+			OutputDirectory="..\..\Bin\"
+			IntermediateDirectory="..\..\..\Temp\$(SolutionName)_$(ProjectName)_$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="1"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -387,12 +459,13 @@
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				AdditionalIncludeDirectories="$(DXSDK_DIR)Include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;CONFIGURATION_NAME=\&quot;$(ConfigurationName)\&quot;;PLATFORM_NAME=\&quot;$(PlatformName)\&quot;"
 				StringPooling="true"
 				RuntimeLibrary="2"
+				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="2"
-				ProgramDataBaseFileName="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).pdb"
 				WarningLevel="3"
 				WarnAsError="true"
 				DebugInformationFormat="3"
@@ -407,11 +480,22 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).lib"
+				Name="VCLinkerTool"
+				AdditionalDependencies="d3d9.lib d3dx9.lib dxguid.lib"
+				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).exe"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\Lib;&quot;$(DXSDK_DIR)Lib\x64&quot;"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="17"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -421,6 +505,9 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -431,30 +518,32 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Interface"
+			Name="Resource Files"
+			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath="..\Include\IFlashDX.h"
+				RelativePath=".\Resources\GUI.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\Resources\GUI.rc"
+				>
+			</File>
+			<File
+				RelativePath=".\Resources\Resource.h"
 				>
 			</File>
 		</Filter>
 		<Filter
-			Name="Implementation"
+			Name="Src"
 			>
 			<File
-				RelativePath=".\Implementation\FlashDX.cpp"
+				RelativePath=".\Src\GUI.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Implementation\FlashDX.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Implementation\FlashDXPlayer.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Implementation\FlashDXPlayer.h"
+				RelativePath=".\Src\GUI.h"
 				>
 			</File>
 		</Filter>

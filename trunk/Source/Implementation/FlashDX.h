@@ -22,7 +22,29 @@
 
 #pragma once
 
-#include "targetver.h"
+#include "../../Include/IFlashDX.h"
 
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-#include "Windows.h"
+//---------------------------------------------------------------------
+/// Implementation of IFlashDX interface.
+//---------------------------------------------------------------------
+class CFlashDX : public IFlashDX
+{
+public:
+	//---------------------------------------------------------------------
+	/// Constructor.
+	CFlashDX();
+
+	//---------------------------------------------------------------------
+	/// Destructor.
+	~CFlashDX();
+
+	//---------------------------------------------------------------------
+	// IFlashDX implementations.
+	//---------------------------------------------------------------------
+	virtual struct IFlashDXPlayer* CreatePlayer(unsigned int width, unsigned int height);
+	virtual void DestroyPlayer(IFlashDXPlayer* pPlayer);
+	virtual bool GetMovieProperties(const wchar_t* movie, SMovieProperties& props);
+	virtual bool GetMovieProperties(const void* movieData, const unsigned int movieDataSize, SMovieProperties& props);
+
+protected:
+};

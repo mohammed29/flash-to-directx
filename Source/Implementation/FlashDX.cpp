@@ -20,9 +20,50 @@
 // THE SOFTWARE.
 //---------------------------------------------------------------------
 
-#pragma once
+#include "stdafx.h"
+#include "FlashDX.h"
 
-#include "targetver.h"
+//---------------------------------------------------------------------
+CFlashDX g_instance;
 
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-#include "Windows.h"
+//---------------------------------------------------------------------
+IFlashDX* GetFlashToDirectXInstance()
+{
+	return &g_instance;
+}
+
+//---------------------------------------------------------------------
+CFlashDX::CFlashDX()
+{
+
+}
+
+//---------------------------------------------------------------------
+CFlashDX::~CFlashDX()
+{
+
+}
+
+//---------------------------------------------------------------------
+struct IFlashDXPlayer* CFlashDX::CreatePlayer(unsigned int width, unsigned int height)
+{
+	return NULL;
+}
+
+//---------------------------------------------------------------------
+void CFlashDX::DestroyPlayer(IFlashDXPlayer* pPlayer)
+{
+
+}
+
+//---------------------------------------------------------------------
+bool CFlashDX::GetMovieProperties(const wchar_t* movie, SMovieProperties& props)
+{
+	return false;
+}
+
+//---------------------------------------------------------------------
+bool CFlashDX::GetMovieProperties(const void* movieData, const unsigned int movieDataSize, SMovieProperties& props)
+{
+	return false;
+}

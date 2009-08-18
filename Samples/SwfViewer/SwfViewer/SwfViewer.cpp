@@ -166,14 +166,14 @@ LRESULT WINAPI MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 	//	}
 	//}
 
+	//if (g_pViewer)
+	//	g_pViewer->OnWindowMessage(msg, wParam, lParam);
+
 	switch( msg )
 	{
-	case WM_LBUTTONDOWN:
-		g_pViewer->OnWindowMessage(msg, wParam, lParam);
-		//SetCapture(hWnd);
-		return 1;
 	case WM_MOUSEMOVE:
 	case WM_LBUTTONUP:
+	case WM_LBUTTONDOWN:
 	case WM_LBUTTONDBLCLK:
 		g_pViewer->OnWindowMessage(msg, wParam, lParam);
 		return 1;
@@ -234,7 +234,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 			return 0;
 		}
 
-		g_pViewer->OpenFlash("D:\\Projects\\SwfViewer\\test.swf");
+		g_pViewer->OpenFlash("C:/Projects/tmp/SwfViewer/test.swf");
 		// Enter the message loop
 		MSG msg;
 		ZeroMemory( &msg, sizeof(msg) );
@@ -247,6 +247,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 			}
 			else
 			{
+				//SetCapture(hWnd);
 				Render();
 			}
 		}

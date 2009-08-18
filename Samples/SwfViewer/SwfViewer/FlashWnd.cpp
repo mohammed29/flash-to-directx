@@ -71,7 +71,8 @@ BOOL CFlashWnd::OnAfterShowingContent()
 {
 	HRESULT hr;
 	m_lpControl->PutEmbedMovie(TRUE);
-	hr = m_lpControl->LoadMovie(0, L"file:///test.swf");
+	hr = m_lpControl->LoadMovie(0, L"C:/Projects/tmp/SwfViewer/test2.swf");
+//	hr = m_lpControl->LoadMovie(0, L"file:///test.swf");
 //	hr = m_lpControl->LoadMovie(0, L"c:\\mailru.swf");
 	if (FAILED(hr))
 		return FALSE;

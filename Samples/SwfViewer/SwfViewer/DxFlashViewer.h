@@ -58,5 +58,5 @@ private:
 	IShockwaveFlash* mFlashCtrl;
 	IOleInPlaceObjectWindowless* mWndlessObject;
 
-	CFlashWnd* mFlashWnd;
+	//CFlashWnd* mFlashWnd;
 };

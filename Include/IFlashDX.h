@@ -116,6 +116,11 @@ struct IFlashDXPlayer
 
 	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME
+	/// @return				bool
+	virtual bool IsNeedUpdate() const = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
 	/// @param dc	REPLACE_ME
 	/// @return				void
 	virtual void DrawFrame(HDC dc) = 0;

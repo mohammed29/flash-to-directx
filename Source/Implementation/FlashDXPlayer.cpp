@@ -78,6 +78,12 @@ void CFlashDXPlayer::ResizePlayer(unsigned int newWidth, unsigned int newHeight)
 }
 
 //---------------------------------------------------------------------
+bool CFlashDXPlayer::IsNeedUpdate() const
+{
+	return false;
+}
+
+//---------------------------------------------------------------------
 void CFlashDXPlayer::DrawFrame(HDC dc)
 {
 

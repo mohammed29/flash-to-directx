@@ -48,6 +48,7 @@ public:
 	virtual void StopPlaying();
 	virtual void Rewind();
 	virtual void ResizePlayer(unsigned int newWidth, unsigned int newHeight);
+	virtual bool IsNeedUpdate() const;
 	virtual void DrawFrame(HDC dc);
 	virtual void SetMousePos(unsigned int x, unsigned int y);
 	virtual void SetMouseButtonState(EMouseButton button, bool pressed);

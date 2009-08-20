@@ -38,8 +38,6 @@ CFlashDXPlayer::CFlashDXPlayer(HMODULE flashDLL, unsigned int width, unsigned in
 	m_lastMouseButtons = 0;
 
 	m_dirtyFlag = false;
-	m_dirtyRect.left = m_dirtyRect.top = LONG_MAX;
-	m_dirtyRect.right = m_dirtyRect.bottom = -LONG_MAX;
 
 	m_width = width;
 	m_height = height;
@@ -84,9 +82,10 @@ CFlashDXPlayer::CFlashDXPlayer(HMODULE flashDLL, unsigned int width, unsigned in
 	if (FAILED(hr))
 		return;
 
-	_bstr_t aTrans = "Transparent";
-	hr = m_flashInterface->put_WMode(aTrans);
+	_bstr_t transparent = "transparent";
+	hr = m_flashInterface->put_WMode(transparent);
 	assert(SUCCEEDED(hr));
+	SetQuality(IFlashDXPlayer::QUALITY_BEST);
 
 	hr = m_oleObject->DoVerb(OLEIVERB_INPLACEACTIVATE, NULL, pClientSite, 0, NULL, NULL);
 	assert(SUCCEEDED(hr));
@@ -124,26 +123,45 @@ CFlashDXPlayer::~CFlashDXPlayer()
 //---------------------------------------------------------------------
 void CFlashDXPlayer::AddDirtyRect(const RECT* pRect)
 {
+	if (m_dirtyFlag == false)
+	{
+		m_dirtyRects.clear();
+		m_dirtyRect.left = m_dirtyRect.top = LONG_MAX;
+		m_dirtyRect.right = m_dirtyRect.bottom = -LONG_MAX;
+	}
+
+	m_dirtyFlag = true;
+
 	if (pRect == NULL)
 	{
 		RECT rect = { 0, 0, m_width, m_height };
 		m_dirtyRect = rect;
 		m_dirtyRects.clear();
 		m_dirtyRects.push_back(m_dirtyRect);
-		m_dirtyFlag = true;
 	}
 	else
 	{
 		#define MIN_MACRO(x, y) ((x) < (y) ? (x) : (y))
 		#define MAX_MACRO(x, y) ((x) > (y) ? (x) : (y))
 
+		if (m_dirtyRect.left <= pRect->left && m_dirtyRect.top <= pRect->top &&
+			m_dirtyRect.right >= pRect->right && m_dirtyRect.bottom >= pRect->bottom)
+		{
+			return; // already included
+		}
+
+		RECT rect = { pRect->left, pRect->top, pRect->right, pRect->bottom };
+		rect.left = MAX_MACRO(rect.left, 0);
+		rect.top = MAX_MACRO(rect.top, 0);
+		rect.right = MIN_MACRO(rect.right, (LONG)m_width);
+		rect.bottom = MIN_MACRO(rect.bottom, (LONG)m_height);
+
 		m_dirtyRect.left = MIN_MACRO(m_dirtyRect.left, pRect->left);
 		m_dirtyRect.top = MIN_MACRO(m_dirtyRect.top, pRect->top);
 		m_dirtyRect.right = MAX_MACRO(m_dirtyRect.right, pRect->right);
 		m_dirtyRect.bottom = MAX_MACRO(m_dirtyRect.bottom, pRect->bottom);
 
-		m_dirtyRects.push_back(*pRect);
-		m_dirtyFlag = true;
+		m_dirtyRects.push_back(rect);
 	}
 }
 
@@ -175,10 +193,29 @@ void CFlashDXPlayer::SetQuality(EQuality quality)
 {
 	if (m_flashInterface)
 	{
-		static char* aQualityNames[3] = { "Low", "Medium", "High" };
+		static char* aQualityNames[6] = { "Low", "Medium", "High", "Best", "AutoLow", "AutoHigh" };
 
 		_bstr_t newStr = aQualityNames[quality];
-		m_flashInterface->put_Quality2(newStr);
+		m_flashInterface->PutQuality2(newStr);
+	}
+}
+
+//---------------------------------------------------------------------
+void CFlashDXPlayer::SetTransparencyMode(ETransparencyMode mode)
+{
+	if (m_flashInterface)
+	{
+		switch (mode)
+		{
+		case IFlashDXPlayer::TMODE_OPAQUE:
+			m_flashInterface->PutWMode(_bstr_t("opaque"));
+			break;
+		case IFlashDXPlayer::TMODE_TRANSPARENT:
+			m_flashInterface->PutWMode(_bstr_t("transparent"));
+			break;
+		default:
+			break;
+		}
 	}
 }
 
@@ -200,6 +237,22 @@ bool CFlashDXPlayer::LoadMovie(const wchar_t* movie)
 	}
 
 	return false;
+}
+
+//---------------------------------------------------------------------
+COLORREF CFlashDXPlayer::GetBackgroundColor()
+{
+	long color = 0;
+	if (m_flashInterface)
+		color = m_flashInterface->GetBackgroundColor();
+	return (COLORREF)color;
+}
+
+//---------------------------------------------------------------------
+void CFlashDXPlayer::SetBackgroundColor(COLORREF color)
+{
+	if (m_flashInterface)
+		m_flashInterface->PutBackgroundColor((long)color);
 }
 
 //---------------------------------------------------------------------
@@ -405,19 +458,43 @@ void CFlashDXPlayer::DrawFrame(HDC dc)
 		m_flashInterface->QueryInterface(IID_IViewObject, (LPVOID*) &pViewObject);
 		if (pViewObject != NULL)
 		{
-			HRGN hRgn = CreateRectRgn(m_dirtyRect.left, m_dirtyRect.top, m_dirtyRect.right, m_dirtyRect.bottom);
-			SelectClipRgn(dc, hRgn);
-			DeleteObject(hRgn);
+			// Combine regions
+			HRGN unionRgn, first, second = NULL;
+			unionRgn = CreateRectRgnIndirect(&m_dirtyRects[0]);
+			if (m_dirtyRects.size() >= 2)
+				second = CreateRectRgn(0, 0, 1, 1);
 
-			RECTL clipRect = { m_dirtyRect.left, m_dirtyRect.top, m_dirtyRect.right, m_dirtyRect.bottom };
-			pViewObject->Draw(DVASPECT_CONTENT, 1, NULL, NULL, NULL, dc, &clipRect, NULL, NULL, 0);
+			for (std::vector<RECT>::iterator it = m_dirtyRects.begin() + 1; it != m_dirtyRects.end(); ++it)
+			{
+				// Fill combined region
+				first = unionRgn;
+				SetRectRgn(second, it->left, it->top, it->right, it->bottom);
+				unionRgn = CreateRectRgn(0, 0, 1, 1);
+
+				CombineRgn(unionRgn, first, second, RGN_OR);
+				DeleteObject(first);
+			}
+
+			if (second)
+				DeleteObject(second);
+
+			// Set clip region
+			SelectClipRgn(dc, unionRgn);
+
+			// Fill background
+			COLORREF fillColor = GetBackgroundColor();
+			HBRUSH fillColorBrush = CreateSolidBrush(fillColor);
+			FillRgn(dc, unionRgn, fillColorBrush);
+			DeleteObject(fillColorBrush);
+
+			DeleteObject(unionRgn);
+
+			RECTL clipRect = { 0, 0, m_width, m_height };
+			pViewObject->Draw(DVASPECT_TRANSPARENT, 1, NULL, NULL, NULL, dc, &clipRect, &clipRect, NULL, 0);
 
 			pViewObject->Release();
 		}
 
-		m_dirtyRects.clear();
-		m_dirtyRect.left = m_dirtyRect.top = LONG_MAX;
-		m_dirtyRect.right = m_dirtyRect.bottom = -LONG_MAX;
 		m_dirtyFlag = false;
 	}
 }

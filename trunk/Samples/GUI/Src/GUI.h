@@ -25,7 +25,9 @@
 #include "../Resources/Resource.h"
 #include "../../../Include/IFlashDX.h"
 
+#ifndef SAFE_RELEASE
 #define SAFE_RELEASE(value) if (value) { (value)->Release(); (value) = NULL; }
+#endif
 
 #ifndef GET_X_LPARAM
 #define GET_X_LPARAM(lp)                        ((int)(short)LOWORD(lp))

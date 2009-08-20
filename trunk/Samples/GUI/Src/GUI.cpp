@@ -27,8 +27,8 @@
 
 //---------------------------------------------------------------------
 const int max_loadstring = 100;
-const int window_width = 800;
-const int window_height = 600;
+const int window_width = 640;
+const int window_height = 480;
 
 // Global Variables:
 HINSTANCE hInst;								// current instance
@@ -58,6 +58,10 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
+
+	int iFlag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+	iFlag |= _CRTDBG_LEAK_CHECK_DF;
+	_CrtSetDbgFlag(iFlag);
 
 	MSG msg;
 	HACCEL hAccelTable;
@@ -149,6 +153,20 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 	hInst = hInstance; // Store instance handle in our global variable
 
+	// Set current directory to module directory
+	wchar_t imagePath[MAX_PATH];
+	GetModuleFileName(NULL, imagePath, MAX_PATH);
+	size_t pathLen = wcslen(imagePath);
+	wchar_t* pathEnd = imagePath + pathLen - 1;
+	while (pathEnd >= imagePath && (*pathEnd != L'\\' && *pathEnd != L'/'))
+		--pathEnd;
+
+	if (pathEnd >= imagePath)
+		*pathEnd++ = 0;
+
+	SetCurrentDirectory(imagePath);
+
+	// Create window
 	RECT rc = { 0, 0, window_width, window_height };
 	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
 
@@ -194,6 +212,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	// Initialize Flash-to-DirectX
 	//---------------------------------------------------------------------
 	g_flashDX = GetFlashToDirectXInstance();
+	double flashVersion = g_flashDX->GetFlashVersion();
 	g_flashPlayer = g_flashDX->CreatePlayer(window_width, window_height);
 
 	if (!g_flashPlayer)
@@ -249,11 +268,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		return 1;
 	case WM_LBUTTONDOWN:
 		if (g_flashPlayer)
-			g_flashPlayer->SetMouseButtonState(IFlashDXPlayer::eMouse1, true);
+			g_flashPlayer->SetMouseButtonState(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), IFlashDXPlayer::eMouse1, true);
 		return 1;
 	case WM_LBUTTONUP:
 		if (g_flashPlayer)
-			g_flashPlayer->SetMouseButtonState(IFlashDXPlayer::eMouse1, false);
+			g_flashPlayer->SetMouseButtonState(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), IFlashDXPlayer::eMouse1, false);
 		return 1;
 	case WM_SIZE:
 		if (g_flashPlayer)
@@ -282,6 +301,9 @@ void DrawFrame()
 		IDirect3DTexture9* pTexToUpdate = g_texturesRotation[g_currentTexture];
 		if (++g_currentTexture == num_textures_in_rotation)
 			g_currentTexture = 0;
+
+		for (unsigned int i = 0; i < g_flashPlayer->GetNumDirtyRects(); ++i)
+			pTexToUpdate->AddDirtyRect(g_flashPlayer->GetDirtyRect(i));
 
 		IDirect3DSurface9* pSurface;
 		hr = pTexToUpdate->GetSurfaceLevel(0, &pSurface);

@@ -22,101 +22,497 @@
 
 #include "stdafx.h"
 #include "FlashDXPlayer.h"
+#include "shlwapi.h"
+
+using namespace ShockwaveFlashObjects;
 
 //---------------------------------------------------------------------
-CFlashDXPlayer::CFlashDXPlayer()
+CFlashDXPlayer::CFlashDXPlayer(HMODULE flashDLL, unsigned int width, unsigned int height)
 {
+	m_userData = NULL;
+	m_flashInterface = NULL;
+	m_oleObject = NULL;
+	m_windowlessObject = NULL;
+	m_lastMouseX = 0;
+	m_lastMouseY = 0;
+	m_lastMouseButtons = 0;
 
+	m_dirtyFlag = false;
+	m_dirtyRect.left = m_dirtyRect.top = LONG_MAX;
+	m_dirtyRect.right = m_dirtyRect.bottom = -LONG_MAX;
+
+	m_width = width;
+	m_height = height;
+
+	m_controlSite.Init(this);
+	m_controlSite.AddRef();
+
+	HRESULT hr;
+
+	typedef HRESULT (__stdcall *DllGetClassObjectFunc)(REFCLSID rclsid, REFIID riid, LPVOID * ppv);
+
+	if (flashDLL != NULL)
+	{
+		IClassFactory* aClassFactory = NULL;
+		DllGetClassObjectFunc aDllGetClassObjectFunc = (DllGetClassObjectFunc) GetProcAddress(flashDLL, "DllGetClassObject");
+		hr = aDllGetClassObjectFunc(CLSID_ShockwaveFlash, IID_IClassFactory, (void**)&aClassFactory);
+
+		if (FAILED(hr))
+			return;
+
+		aClassFactory->CreateInstance(NULL, IID_IOleObject, (void**)&m_oleObject);
+		aClassFactory->Release();	
+	}
+	else
+	{
+		hr = CoCreateInstance(CLSID_ShockwaveFlash, NULL, CLSCTX_INPROC_SERVER, IID_IOleObject, (void**)&m_oleObject);
+
+		if (FAILED(hr))
+			return;
+	}
+
+	IOleClientSite* pClientSite = NULL;
+	hr = m_controlSite.QueryInterface(__uuidof(IOleClientSite), (void**)&pClientSite);
+	if (FAILED(hr))
+		return;
+
+	hr = m_oleObject->SetClientSite(pClientSite);
+	if (FAILED(hr))
+		return;
+
+	hr = m_oleObject->QueryInterface(__uuidof(IShockwaveFlash), (void**)&m_flashInterface);
+	if (FAILED(hr))
+		return;
+
+	_bstr_t aTrans = "Transparent";
+	hr = m_flashInterface->put_WMode(aTrans);
+	assert(SUCCEEDED(hr));
+
+	hr = m_oleObject->DoVerb(OLEIVERB_INPLACEACTIVATE, NULL, pClientSite, 0, NULL, NULL);
+	assert(SUCCEEDED(hr));
+
+	pClientSite->Release();
+
+	hr = m_oleObject->QueryInterface(__uuidof(IOleInPlaceObjectWindowless), (void**)&m_windowlessObject);
+	assert(SUCCEEDED(hr));
+
+	m_flashSink.Init(this);
+	m_flashSink.AddRef();
+
+	// Resize player
+	ResizePlayer(width, height);
 }
 
 //---------------------------------------------------------------------
 CFlashDXPlayer::~CFlashDXPlayer()
 {
+	SAFE_RELEASE(m_windowlessObject);
+	SAFE_RELEASE(m_flashInterface);
 
+	m_flashSink.Shutdown();
+	m_flashSink.Release();
+
+	if (m_oleObject)
+	{
+		m_oleObject->Close(OLECLOSE_NOSAVE);
+		m_oleObject->Release();	
+	}
+
+	m_controlSite.Release();
+}
+
+//---------------------------------------------------------------------
+void CFlashDXPlayer::AddDirtyRect(const RECT* pRect)
+{
+	if (pRect == NULL)
+	{
+		RECT rect = { 0, 0, m_width, m_height };
+		m_dirtyRect = rect;
+		m_dirtyRects.clear();
+		m_dirtyRects.push_back(m_dirtyRect);
+		m_dirtyFlag = true;
+	}
+	else
+	{
+		#define MIN_MACRO(x, y) ((x) < (y) ? (x) : (y))
+		#define MAX_MACRO(x, y) ((x) > (y) ? (x) : (y))
+
+		m_dirtyRect.left = MIN_MACRO(m_dirtyRect.left, pRect->left);
+		m_dirtyRect.top = MIN_MACRO(m_dirtyRect.top, pRect->top);
+		m_dirtyRect.right = MAX_MACRO(m_dirtyRect.right, pRect->right);
+		m_dirtyRect.bottom = MAX_MACRO(m_dirtyRect.bottom, pRect->bottom);
+
+		m_dirtyRects.push_back(*pRect);
+		m_dirtyFlag = true;
+	}
 }
 
 //---------------------------------------------------------------------
 void CFlashDXPlayer::SetUserData(intptr_t data)
 {
-
+	m_userData = data;
 }
 
 //---------------------------------------------------------------------
 intptr_t CFlashDXPlayer::GetUserData() const
 {
-	return 0;
+	return m_userData;
+}
+
+//---------------------------------------------------------------------
+IFlashDXPlayer::EState CFlashDXPlayer::GetState() const
+{
+	if (!m_flashInterface)
+		return IFlashDXPlayer::STATE_IDLE;
+
+	if (m_flashInterface->IsPlaying())
+		return IFlashDXPlayer::STATE_PLAYING;
+	return IFlashDXPlayer::STATE_STOPPED;
+}
+
+//---------------------------------------------------------------------
+void CFlashDXPlayer::SetQuality(EQuality quality)
+{
+	if (m_flashInterface)
+	{
+		static char* aQualityNames[3] = { "Low", "Medium", "High" };
+
+		_bstr_t newStr = aQualityNames[quality];
+		m_flashInterface->put_Quality2(newStr);
+	}
 }
 
 //---------------------------------------------------------------------
 bool CFlashDXPlayer::LoadMovie(const wchar_t* movie)
 {
+	if (m_flashInterface)
+	{
+		wchar_t fullpath[MAX_PATH];
+
+		if(!_wfullpath(fullpath, movie, MAX_PATH))
+			return false;
+
+		if (!PathFileExists(fullpath))
+			return false;
+
+		HRESULT hr = m_flashInterface->put_Movie(_bstr_t(fullpath));
+		return SUCCEEDED(hr);
+	}
+
 	return false;
 }
 
 //---------------------------------------------------------------------
 void CFlashDXPlayer::StartPlaying()
 {
+	if (m_flashInterface)
+		m_flashInterface->Play();
+}
 
+//---------------------------------------------------------------------
+void CFlashDXPlayer::StartPlaying(const wchar_t* timelineTarget)
+{
+	if (m_flashInterface)
+		m_flashInterface->TPlay(_bstr_t(timelineTarget));
 }
 
 //---------------------------------------------------------------------
 void CFlashDXPlayer::StopPlaying()
 {
+	if (m_flashInterface)
+		m_flashInterface->StopPlay();
+}
 
+//---------------------------------------------------------------------
+void CFlashDXPlayer::StopPlaying(const wchar_t* timelineTarget)
+{
+	if (m_flashInterface)
+		m_flashInterface->TStopPlay(_bstr_t(timelineTarget));
 }
 
 //---------------------------------------------------------------------
 void CFlashDXPlayer::Rewind()
 {
+	if (m_flashInterface)
+		m_flashInterface->Rewind();
+}
 
+//---------------------------------------------------------------------
+void CFlashDXPlayer::StepForward()
+{
+	if (m_flashInterface)
+		m_flashInterface->Forward();
+}
+
+//---------------------------------------------------------------------
+void CFlashDXPlayer::StepBack()
+{
+	if (m_flashInterface)
+		m_flashInterface->Back();
+}
+
+//---------------------------------------------------------------------
+int CFlashDXPlayer::GetCurrentFrame()
+{
+	if (m_flashInterface)
+		return m_flashInterface->CurrentFrame();
+	return -1;
+}
+
+//---------------------------------------------------------------------
+int CFlashDXPlayer::GetCurrentFrame(const wchar_t* timelineTarget /*= L"/"*/)
+{
+	if (m_flashInterface)
+		return m_flashInterface->TCurrentFrame(_bstr_t(timelineTarget));
+	return -1;
+}
+
+//---------------------------------------------------------------------
+void CFlashDXPlayer::GotoFrame(int frame)
+{
+	if (m_flashInterface)
+		m_flashInterface->GotoFrame((long)frame);
+}
+
+//---------------------------------------------------------------------
+void CFlashDXPlayer::GotoFrame(int frame, const wchar_t* timelineTarget)
+{
+	if (m_flashInterface)
+		m_flashInterface->TGotoFrame(_bstr_t(timelineTarget), (long)frame);
+}
+
+//---------------------------------------------------------------------
+void CFlashDXPlayer::CallFrame(int frame, const wchar_t* timelineTarget /*= L"/"*/)
+{
+	if (m_flashInterface)
+		m_flashInterface->TCallFrame(_bstr_t(timelineTarget), frame);
+}
+
+//---------------------------------------------------------------------
+std::wstring CFlashDXPlayer::GetCurrentLabel(const wchar_t* timelineTarget /*= L"/"*/)
+{
+	if (m_flashInterface)
+		return std::wstring(m_flashInterface->TCurrentLabel(_bstr_t(timelineTarget)));
+	return std::wstring();
+}
+
+//---------------------------------------------------------------------
+void CFlashDXPlayer::GotoLabel(const wchar_t* label, const wchar_t* timelineTarget /*= L"/"*/)
+{
+	if (m_flashInterface)
+		m_flashInterface->TGotoLabel(_bstr_t(timelineTarget), _bstr_t(label));
+}
+
+//---------------------------------------------------------------------
+void CFlashDXPlayer::CallLabel(const wchar_t* label, const wchar_t* timelineTarget /*= L"/"*/)
+{
+	if (m_flashInterface)
+		m_flashInterface->TCallLabel(_bstr_t(timelineTarget), _bstr_t(label));
+}
+
+//---------------------------------------------------------------------
+std::wstring CFlashDXPlayer::GetVariable(const wchar_t* name)
+{
+	if (m_flashInterface)
+		std::wstring(m_flashInterface->GetVariable(_bstr_t(name)));
+	return std::wstring();
+}
+
+//---------------------------------------------------------------------
+void CFlashDXPlayer::SetVariable(const wchar_t* name, const wchar_t* value)
+{
+	if (m_flashInterface)
+		m_flashInterface->SetVariable(_bstr_t(name), _bstr_t(value));
+}
+
+//---------------------------------------------------------------------
+std::wstring CFlashDXPlayer::GetProperty(int iProperty, const wchar_t* timelineTarget /*= L"/"*/)
+{
+	if (m_flashInterface)
+		return std::wstring(m_flashInterface->TGetProperty(_bstr_t(timelineTarget), iProperty));
+	return std::wstring();
+}
+
+//---------------------------------------------------------------------
+double CFlashDXPlayer::GetPropertyAsNumber(int iProperty, const wchar_t* timelineTarget /*= L"/"*/)
+{
+	if (m_flashInterface)
+		return m_flashInterface->TGetPropertyNum(_bstr_t(timelineTarget), iProperty);
+	return 0;
+}
+
+//---------------------------------------------------------------------
+void CFlashDXPlayer::SetProperty(int iProperty, const wchar_t* value, const wchar_t* timelineTarget /*= L"/"*/)
+{
+	if (m_flashInterface)
+		m_flashInterface->TSetProperty(_bstr_t(timelineTarget), iProperty, _bstr_t(value));
+}
+
+//---------------------------------------------------------------------
+void CFlashDXPlayer::SetProperty(int iProperty, double value, const wchar_t* timelineTarget /*= L"/"*/)
+{
+	if (m_flashInterface)
+		m_flashInterface->TSetPropertyNum(_bstr_t(timelineTarget), iProperty, value);
 }
 
 //---------------------------------------------------------------------
 void CFlashDXPlayer::ResizePlayer(unsigned int newWidth, unsigned int newHeight)
 {
+	IOleInPlaceObject* pInPlaceObject = NULL;
+	m_oleObject->QueryInterface(__uuidof(IOleInPlaceObject), (LPVOID*) &pInPlaceObject);
 
+	if (pInPlaceObject != NULL)
+	{
+		RECT rect = { 0, 0, newWidth, newHeight };
+		pInPlaceObject->SetObjectRects(&rect, &rect);
+		pInPlaceObject->Release();
+
+		m_width = newWidth;
+		m_height = newHeight;
+	}
 }
 
 //---------------------------------------------------------------------
 bool CFlashDXPlayer::IsNeedUpdate() const
 {
-	return false;
+	return m_dirtyFlag;
+}
+
+//---------------------------------------------------------------------
+unsigned int CFlashDXPlayer::GetNumDirtyRects() const
+{
+	return (unsigned int)m_dirtyRects.size();
+}
+
+//---------------------------------------------------------------------
+const RECT* CFlashDXPlayer::GetDirtyRect(unsigned int index) const
+{
+	return &m_dirtyRects[index];
+}
+
+//---------------------------------------------------------------------
+RECT CFlashDXPlayer::GetDirtyRegionBox() const
+{
+	return m_dirtyRect;
 }
 
 //---------------------------------------------------------------------
 void CFlashDXPlayer::DrawFrame(HDC dc)
 {
+	if (m_dirtyFlag)
+	{
+		IViewObject* pViewObject = NULL;
+		m_flashInterface->QueryInterface(IID_IViewObject, (LPVOID*) &pViewObject);
+		if (pViewObject != NULL)
+		{
+			HRGN hRgn = CreateRectRgn(m_dirtyRect.left, m_dirtyRect.top, m_dirtyRect.right, m_dirtyRect.bottom);
+			SelectClipRgn(dc, hRgn);
+			DeleteObject(hRgn);
 
+			RECTL clipRect = { m_dirtyRect.left, m_dirtyRect.top, m_dirtyRect.right, m_dirtyRect.bottom };
+			pViewObject->Draw(DVASPECT_CONTENT, 1, NULL, NULL, NULL, dc, &clipRect, NULL, NULL, 0);
+
+			pViewObject->Release();
+		}
+
+		m_dirtyRects.clear();
+		m_dirtyRect.left = m_dirtyRect.top = LONG_MAX;
+		m_dirtyRect.right = m_dirtyRect.bottom = -LONG_MAX;
+		m_dirtyFlag = false;
+	}
+}
+
+//---------------------------------------------------------------------
+WPARAM CFlashDXPlayer::CreateMouseWParam(WPARAM highWord)
+{
+	WPARAM result = highWord;
+	result |= GetAsyncKeyState(VK_CONTROL) ? MK_CONTROL : 0;
+	result |= GetAsyncKeyState(VK_SHIFT) ? MK_SHIFT : 0;
+	result |= m_lastMouseButtons;
+	return result;
 }
 
 //---------------------------------------------------------------------
 void CFlashDXPlayer::SetMousePos(unsigned int x, unsigned int y)
 {
-
+	LRESULT lr;
+	m_windowlessObject->OnWindowMessage(WM_MOUSEMOVE, CreateMouseWParam(0), MAKELPARAM(x, y), &lr);
+	m_lastMouseX = x;
+	m_lastMouseY = y;
 }
 
 //---------------------------------------------------------------------
-void CFlashDXPlayer::SetMouseButtonState(EMouseButton button, bool pressed)
+void CFlashDXPlayer::SetMouseButtonState(unsigned int x, unsigned int y, EMouseButton button, bool pressed)
 {
+	m_lastMouseX = x;
+	m_lastMouseY = y;
 
+	LRESULT lr;
+	switch (button)
+	{
+	case IFlashDXPlayer::eMouse1:
+		if (pressed)
+		{
+			m_lastMouseButtons |= MK_LBUTTON;
+			m_windowlessObject->OnWindowMessage(WM_LBUTTONDOWN, CreateMouseWParam(0), MAKELPARAM(m_lastMouseX, m_lastMouseY), &lr);
+		}
+		else
+		{
+			m_lastMouseButtons &= ~MK_LBUTTON;
+			m_windowlessObject->OnWindowMessage(WM_LBUTTONUP, CreateMouseWParam(0), MAKELPARAM(m_lastMouseX, m_lastMouseY), &lr);
+		}
+		break;
+	case IFlashDXPlayer::eMouse2:
+		if (pressed)
+		{
+			m_lastMouseButtons |= MK_RBUTTON;
+			m_windowlessObject->OnWindowMessage(WM_RBUTTONDOWN, CreateMouseWParam(0), MAKELPARAM(m_lastMouseX, m_lastMouseY), &lr);
+		}
+		else
+		{
+			m_lastMouseButtons &= ~MK_RBUTTON;
+			m_windowlessObject->OnWindowMessage(WM_RBUTTONUP, CreateMouseWParam(0), MAKELPARAM(m_lastMouseX, m_lastMouseY), &lr);
+		}
+		break;
+	case IFlashDXPlayer::eMouse3:
+		if (pressed)
+		{
+			m_lastMouseButtons |= MK_MBUTTON;
+			m_windowlessObject->OnWindowMessage(WM_MBUTTONDOWN, CreateMouseWParam(0), MAKELPARAM(m_lastMouseX, m_lastMouseY), &lr);
+		}
+		else
+		{
+			m_lastMouseButtons &= ~MK_MBUTTON;
+			m_windowlessObject->OnWindowMessage(WM_MBUTTONUP, CreateMouseWParam(0), MAKELPARAM(m_lastMouseX, m_lastMouseY), &lr);
+		}
+		break;
+	default:
+		break;
+	}
 }
 
 //---------------------------------------------------------------------
 void CFlashDXPlayer::SendMouseWheel(int delta)
 {
-
+	LRESULT lr;
+	m_windowlessObject->OnWindowMessage(WM_MOUSEWHEEL, CreateMouseWParam(MAKEWPARAM(0, delta)), MAKELPARAM(m_lastMouseX, m_lastMouseY), &lr);
 }
 
 //---------------------------------------------------------------------
 void CFlashDXPlayer::SendKey(bool pressed, int virtualKey, int extended)
 {
-
+	LRESULT lr;
+	if (pressed)
+		m_windowlessObject->OnWindowMessage(WM_KEYDOWN, (WPARAM)virtualKey, (LPARAM)extended, &lr);
+	else
+		m_windowlessObject->OnWindowMessage(WM_KEYUP, (WPARAM)virtualKey, (LPARAM)extended, &lr);
 }
 
 //---------------------------------------------------------------------
 void CFlashDXPlayer::SendChar(int character, int extended)
 {
-
+	LRESULT lr;
+	m_windowlessObject->OnWindowMessage(WM_CHAR, (WPARAM)character, (LPARAM)extended, &lr);
 }
 
 //---------------------------------------------------------------------

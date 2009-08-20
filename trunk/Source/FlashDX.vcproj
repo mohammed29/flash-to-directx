@@ -65,6 +65,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="shlwapi.lib"
 				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).lib"
 			/>
 			<Tool
@@ -130,6 +131,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="shlwapi.lib"
 				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).lib"
 			/>
 			<Tool
@@ -200,6 +202,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="shlwapi.lib"
 				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).lib"
 			/>
 			<Tool
@@ -270,6 +273,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="shlwapi.lib"
 				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).lib"
 			/>
 			<Tool
@@ -339,6 +343,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="shlwapi.lib"
 				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).lib"
 			/>
 			<Tool
@@ -408,6 +413,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="shlwapi.lib"
 				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName)_$(PlatformName).lib"
 			/>
 			<Tool
@@ -442,6 +448,14 @@
 			Name="Implementation"
 			>
 			<File
+				RelativePath=".\Implementation\ControlSite.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Implementation\ControlSite.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Implementation\FlashDX.cpp"
 				>
 			</File>
@@ -455,6 +469,18 @@
 			</File>
 			<File
 				RelativePath=".\Implementation\FlashDXPlayer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Implementation\FlashOCXInterface.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Implementation\FlashSink.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Implementation\FlashSink.h"
 				>
 			</File>
 		</Filter>

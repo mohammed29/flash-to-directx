@@ -22,6 +22,10 @@
 
 #include "stdafx.h"
 #include "FlashDX.h"
+#include "FlashDXPlayer.h"
+
+#pragma comment(lib, "comsuppw.lib")
+using namespace ShockwaveFlashObjects;
 
 //---------------------------------------------------------------------
 CFlashDX g_instance;
@@ -35,25 +39,46 @@ IFlashDX* GetFlashToDirectXInstance()
 //---------------------------------------------------------------------
 CFlashDX::CFlashDX()
 {
-
+	CoInitialize(NULL);
+	m_flashLibHandle = LoadLibrary(L"flash10a.ocx");
 }
 
 //---------------------------------------------------------------------
 CFlashDX::~CFlashDX()
 {
+	FreeLibrary(m_flashLibHandle);	
+	CoUninitialize();
+}
 
+//---------------------------------------------------------------------
+double CFlashDX::GetFlashVersion()
+{
+	IOleObject* pOleObject = NULL;
+	if (FAILED(CoCreateInstance(CLSID_ShockwaveFlash, NULL, CLSCTX_INPROC_SERVER, IID_IOleObject, (void**) &pOleObject)))
+		return 0.0;	
+
+	IShockwaveFlash* pFlashInterface = NULL;
+	if (FAILED(pOleObject->QueryInterface(__uuidof(IShockwaveFlash), (LPVOID*) &pFlashInterface)))
+		return 0.0;
+
+	long version = pFlashInterface->FlashVersion();
+
+	pFlashInterface->Release();
+	pOleObject->Release();
+
+	return version / 65536.0;
 }
 
 //---------------------------------------------------------------------
 struct IFlashDXPlayer* CFlashDX::CreatePlayer(unsigned int width, unsigned int height)
 {
-	return NULL;
+	return new CFlashDXPlayer(m_flashLibHandle, width, height);
 }
 
 //---------------------------------------------------------------------
 void CFlashDX::DestroyPlayer(IFlashDXPlayer* pPlayer)
 {
-
+	delete (CFlashDXPlayer*)pPlayer;
 }
 
 //---------------------------------------------------------------------

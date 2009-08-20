@@ -41,10 +41,12 @@ public:
 	//---------------------------------------------------------------------
 	// IFlashDX implementations.
 	//---------------------------------------------------------------------
+	virtual double GetFlashVersion();
 	virtual struct IFlashDXPlayer* CreatePlayer(unsigned int width, unsigned int height);
 	virtual void DestroyPlayer(IFlashDXPlayer* pPlayer);
 	virtual bool GetMovieProperties(const wchar_t* movie, SMovieProperties& props);
 	virtual bool GetMovieProperties(const void* movieData, const unsigned int movieDataSize, SMovieProperties& props);
 
 protected:
+	HMODULE					m_flashLibHandle;		
 };

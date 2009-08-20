@@ -23,6 +23,8 @@
 #pragma once
 
 #include "../../Include/IFlashDX.h"
+#include "ControlSite.h"
+#include "FlashSink.h"
 
 //---------------------------------------------------------------------
 /// Implementation of IFlashDXPlayer interface.
@@ -32,26 +34,53 @@ class CFlashDXPlayer : public IFlashDXPlayer
 public:
 	//---------------------------------------------------------------------
 	/// Constructor.
-	CFlashDXPlayer();
+	CFlashDXPlayer(HMODULE flashDLL, unsigned int width, unsigned int height);
 
 	//---------------------------------------------------------------------
 	/// Destructor.
-	~CFlashDXPlayer();
+	virtual ~CFlashDXPlayer();
+
+	//---------------------------------------------------------------------
+	/// Adds dirty rectangle.
+	void AddDirtyRect(const RECT* pRect);
 
 	//---------------------------------------------------------------------
 	// IFlashDXPlayer implementations.
 	//---------------------------------------------------------------------
 	virtual void SetUserData(intptr_t data);
 	virtual intptr_t GetUserData() const;
+	virtual EState GetState() const;
+	virtual void SetQuality(EQuality quality);
 	virtual bool LoadMovie(const wchar_t* movie);
 	virtual void StartPlaying();
+	virtual void StartPlaying(const wchar_t* timelineTarget);
 	virtual void StopPlaying();
+	virtual void StopPlaying(const wchar_t* timelineTarget);
 	virtual void Rewind();
+	virtual void StepForward();
+	virtual void StepBack();
+	virtual int GetCurrentFrame();
+	virtual int GetCurrentFrame(const wchar_t* timelineTarget = L"/");
+	virtual void GotoFrame(int frame);
+	virtual void GotoFrame(int frame, const wchar_t* timelineTarget);
+	virtual void CallFrame(int frame, const wchar_t* timelineTarget = L"/");
+	virtual std::wstring GetCurrentLabel(const wchar_t* timelineTarget = L"/");
+	virtual void GotoLabel(const wchar_t* label, const wchar_t* timelineTarget = L"/");
+	virtual void CallLabel(const wchar_t* label, const wchar_t* timelineTarget = L"/");
+	virtual std::wstring GetVariable(const wchar_t* name);
+	virtual void SetVariable(const wchar_t* name, const wchar_t* value);
+	virtual std::wstring GetProperty(int iProperty, const wchar_t* timelineTarget = L"/");
+	virtual double GetPropertyAsNumber(int iProperty, const wchar_t* timelineTarget = L"/");
+	virtual void SetProperty(int iProperty, const wchar_t* value, const wchar_t* timelineTarget = L"/");
+	virtual void SetProperty(int iProperty, double value, const wchar_t* timelineTarget = L"/");
 	virtual void ResizePlayer(unsigned int newWidth, unsigned int newHeight);
 	virtual bool IsNeedUpdate() const;
+	virtual unsigned int GetNumDirtyRects() const;
+	virtual const RECT* GetDirtyRect(unsigned int index) const;
+	virtual RECT GetDirtyRegionBox() const;
 	virtual void DrawFrame(HDC dc);
 	virtual void SetMousePos(unsigned int x, unsigned int y);
-	virtual void SetMouseButtonState(EMouseButton button, bool pressed);
+	virtual void SetMouseButtonState(unsigned int x, unsigned int y, EMouseButton button, bool pressed);
 	virtual void SendMouseWheel(int delta);
 	virtual void SendKey(bool pressed, int virtualKey, int extended);
 	virtual void SendChar(int character, int extended);
@@ -73,4 +102,28 @@ public:
 	virtual unsigned int GetNumEventHandlers() const;
 
 protected:
+	//---------------------------------------------------------------------
+	WPARAM CreateMouseWParam(WPARAM highWord);
+
+public:
+	unsigned int			m_width;
+	unsigned int			m_height;
+
+	ShockwaveFlashObjects::IShockwaveFlash* m_flashInterface;
+
+protected:
+	CControlSite			m_controlSite;
+	CFlashSink				m_flashSink;
+	IOleObject*				m_oleObject;
+	IOleInPlaceObjectWindowless* m_windowlessObject;
+
+	RECT					m_dirtyRect;
+	std::vector<RECT>		m_dirtyRects;
+	bool					m_dirtyFlag;
+
+	intptr_t				m_userData;
+
+	unsigned int			m_lastMouseX;
+	unsigned int			m_lastMouseY;
+	intptr_t				m_lastMouseButtons;
 };

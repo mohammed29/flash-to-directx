@@ -26,3 +26,10 @@
 
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include "Windows.h"
+
+#ifndef SAFE_RELEASE
+#define SAFE_RELEASE(value) if (value) { (value)->Release(); (value) = NULL; }
+#endif
+
+#include "Implementation/FlashOCXInterface.h"
+#include <vector>

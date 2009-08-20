@@ -20,7 +20,11 @@
 // THE SOFTWARE.
 //---------------------------------------------------------------------
 
+// NOTE: this implementation based on Popcap Framework Flash Widget implementation
+
 #pragma once
+
+#include <string>
 
 //---------------------------------------------------------------------
 /// @brief				Returns pointer on instance of Flash-to-DirectX.
@@ -31,6 +35,11 @@ extern struct IFlashDX* GetFlashToDirectXInstance();
 //---------------------------------------------------------------------
 struct IFlashDX
 {
+	//---------------------------------------------------------------------
+	/// @brief				Returns version of the Flash ActiveX.
+	/// @return				Flash version number, eg 10.0.
+	virtual double GetFlashVersion() = 0;
+
 	//---------------------------------------------------------------------
 	/// @brief				Creates flash player. Can be called multiple times to create different players.
 	/// @param width		Width of rendering surface of the player.
@@ -87,6 +96,33 @@ struct IFlashDXPlayer
 	virtual intptr_t GetUserData() const = 0;
 
 	//---------------------------------------------------------------------
+	enum EState
+	{
+		STATE_IDLE = 0,
+		STATE_PLAYING,
+		STATE_STOPPED
+	};
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @return				IFlashDXPlayer::EState
+	virtual EState GetState() const = 0;
+
+	//---------------------------------------------------------------------
+	enum EQuality
+	{
+		QUALITY_LOW = 0,
+		QUALITY_MEDIUM,
+		QUALITY_HIGH
+	};
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @param quality	REPLACE_ME
+	/// @return				void
+	virtual void SetQuality(EQuality quality) = 0;
+
+	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME
 	/// @param movie	REPLACE_ME
 	/// @return				bool
@@ -100,12 +136,124 @@ struct IFlashDXPlayer
 	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME
 	/// @return				void
+	virtual void StartPlaying(const wchar_t* timelineTarget) = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @return				void
 	virtual void StopPlaying() = 0;
 
 	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME
 	/// @return				void
+	virtual void StopPlaying(const wchar_t* timelineTarget) = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @return				void
 	virtual void Rewind() = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @return				void
+	virtual void StepForward() = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @return				void
+	virtual void StepBack() = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @return				int
+	virtual int GetCurrentFrame() = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @param timelineTarget	REPLACE_ME
+	/// @return				int
+	virtual int GetCurrentFrame(const wchar_t* timelineTarget = L"/") = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @param frame	REPLACE_ME
+	/// @return				void
+	virtual void GotoFrame(int frame) = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @param frame	REPLACE_ME
+	/// @return				void
+	virtual void GotoFrame(int frame, const wchar_t* timelineTarget) = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @param frame	REPLACE_ME
+	/// @param timelineTarget	REPLACE_ME
+	/// @return				void
+	virtual void CallFrame(int frame, const wchar_t* timelineTarget = L"/") = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @return				std::wstring
+	virtual std::wstring GetCurrentLabel(const wchar_t* timelineTarget = L"/") = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @param label	REPLACE_ME
+	/// @param timelineTarget	REPLACE_ME
+	/// @return				void
+	virtual void GotoLabel(const wchar_t* label, const wchar_t* timelineTarget = L"/") = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @param label	REPLACE_ME
+	/// @param timelineTarget	REPLACE_ME
+	/// @return				void
+	virtual void CallLabel(const wchar_t* label, const wchar_t* timelineTarget = L"/") = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @param name	REPLACE_ME
+	/// @return				std::wstring
+	virtual std::wstring GetVariable(const wchar_t* name) = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @param name	REPLACE_ME
+	/// @param value	REPLACE_ME
+	/// @return				void
+	virtual void SetVariable(const wchar_t* name, const wchar_t* value) = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @param iProperty	REPLACE_ME
+	/// @param timelineTarget	REPLACE_ME
+	/// @return				std::wstring
+	virtual std::wstring GetProperty(int iProperty, const wchar_t* timelineTarget = L"/") = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @param iProperty	REPLACE_ME
+	/// @param timelineTarget	REPLACE_ME
+	/// @return				double
+	virtual double GetPropertyAsNumber(int iProperty, const wchar_t* timelineTarget = L"/") = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @param iProperty	REPLACE_ME
+	/// @param value	REPLACE_ME
+	/// @param timelineTarget	REPLACE_ME
+	/// @return				void
+	virtual void SetProperty(int iProperty, const wchar_t* value, const wchar_t* timelineTarget = L"/") = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @param iProperty	REPLACE_ME
+	/// @param value	REPLACE_ME
+	/// @param timelineTarget	REPLACE_ME
+	/// @return				void
+	virtual void SetProperty(int iProperty, double value, const wchar_t* timelineTarget = L"/") = 0;
 
 	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME
@@ -118,6 +266,22 @@ struct IFlashDXPlayer
 	/// @brief				REPLACE_ME
 	/// @return				bool
 	virtual bool IsNeedUpdate() const = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @return				unsigned int
+	virtual unsigned int GetNumDirtyRects() const = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @param index	REPLACE_ME
+	/// @return				const RECT*
+	virtual const RECT* GetDirtyRect(unsigned int index) const = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @return				RECT
+	virtual RECT GetDirtyRegionBox() const = 0;
 
 	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME
@@ -150,7 +314,7 @@ struct IFlashDXPlayer
 	/// @param button	REPLACE_ME
 	/// @param pressed	REPLACE_ME
 	/// @return				void
-	virtual void SetMouseButtonState(EMouseButton button, bool pressed) = 0;
+	virtual void SetMouseButtonState(unsigned int x, unsigned int y, EMouseButton button, bool pressed) = 0;
 
 	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME

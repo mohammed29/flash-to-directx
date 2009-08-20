@@ -92,7 +92,7 @@ bool DxFlashViewer::Init( IDirect3DDevice9* pDevice, HWND hWnd, int width, int h
 	if (FAILED(hr))
 		return false;
 	hr = this->mFlashCtrl->put_WMode(L"transparent");
-	//hr = AtlAxAttachControl(this->mFlashCtrl, this->mViewerWnd, NULL);
+	hr = AtlAxAttachControl(this->mFlashCtrl, this->mViewerWnd, NULL);
 	if (FAILED(hr))
 		return false;
 	hr = this->mFlashCtrl->QueryInterface(__uuidof(IOleInPlaceObjectWindowless), (void**)&this->mWndlessObject);

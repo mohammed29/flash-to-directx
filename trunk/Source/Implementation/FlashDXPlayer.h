@@ -51,7 +51,10 @@ public:
 	virtual intptr_t GetUserData() const;
 	virtual EState GetState() const;
 	virtual void SetQuality(EQuality quality);
+	virtual void SetTransparencyMode(ETransparencyMode mode);
 	virtual bool LoadMovie(const wchar_t* movie);
+	virtual COLORREF GetBackgroundColor();
+	virtual void SetBackgroundColor(COLORREF color);
 	virtual void StartPlaying();
 	virtual void StartPlaying(const wchar_t* timelineTarget);
 	virtual void StopPlaying();

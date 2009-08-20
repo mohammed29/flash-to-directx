@@ -113,7 +113,10 @@ struct IFlashDXPlayer
 	{
 		QUALITY_LOW = 0,
 		QUALITY_MEDIUM,
-		QUALITY_HIGH
+		QUALITY_HIGH,
+		QUALITY_BEST,
+		QUALITY_AUTOLOW,
+		QUALITY_AUTOHIGH
 	};
 
 	//---------------------------------------------------------------------
@@ -123,10 +126,34 @@ struct IFlashDXPlayer
 	virtual void SetQuality(EQuality quality) = 0;
 
 	//---------------------------------------------------------------------
+	enum ETransparencyMode
+	{
+		TMODE_OPAQUE = 0,
+		TMODE_TRANSPARENT = 1
+	};
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @param mode	REPLACE_ME
+	/// @return				void
+	virtual void SetTransparencyMode(ETransparencyMode mode) = 0;
+
+	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME
 	/// @param movie	REPLACE_ME
 	/// @return				bool
 	virtual bool LoadMovie(const wchar_t* movie) = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @return				COLORREF
+	virtual COLORREF GetBackgroundColor() = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @param color	REPLACE_ME
+	/// @return				void
+	virtual void SetBackgroundColor(COLORREF color) = 0;
 
 	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME

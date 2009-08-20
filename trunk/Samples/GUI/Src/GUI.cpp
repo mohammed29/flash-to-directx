@@ -27,8 +27,10 @@
 
 //---------------------------------------------------------------------
 const int max_loadstring = 100;
-const int window_width = 640;
-const int window_height = 480;
+const int window_width = 700;
+const int window_height = 350;
+const int num_textures_in_rotation = 2;
+const wchar_t* movie_path = L"Data/VT.swf";
 
 // Global Variables:
 HINSTANCE hInst;								// current instance
@@ -42,7 +44,6 @@ IDirect3D9*			g_direct3D = NULL;
 IDirect3DDevice9*	g_device = NULL;
 D3DPRESENT_PARAMETERS g_params;
 
-const int			num_textures_in_rotation = 2;
 IDirect3DTexture9*	g_texturesRotation[num_textures_in_rotation] = { NULL };
 int					g_currentTexture = 0;
 IDirect3DTexture9*	g_textureGUI = NULL;
@@ -218,8 +219,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	if (!g_flashPlayer)
 		return FALSE;
 
-	g_flashPlayer->LoadMovie(L"Data/GUI.swf");
+	g_flashPlayer->LoadMovie(movie_path);
 	g_flashPlayer->StartPlaying();
+
+	g_flashPlayer->SetTransparencyMode(IFlashDXPlayer::TMODE_OPAQUE);
+	g_flashPlayer->SetBackgroundColor(0xFFFFFFFF);
 
 	// Show window
 	ShowWindow(hWnd, nCmdShow);
@@ -302,25 +306,41 @@ void DrawFrame()
 		if (++g_currentTexture == num_textures_in_rotation)
 			g_currentTexture = 0;
 
-		for (unsigned int i = 0; i < g_flashPlayer->GetNumDirtyRects(); ++i)
-			pTexToUpdate->AddDirtyRect(g_flashPlayer->GetDirtyRect(i));
-
-		IDirect3DSurface9* pSurface;
-		hr = pTexToUpdate->GetSurfaceLevel(0, &pSurface);
+		IDirect3DSurface9* pSrcSurface;
+		hr = pTexToUpdate->GetSurfaceLevel(0, &pSrcSurface);
 		assert(SUCCEEDED(hr));
 
 		HDC surfaceDC;
-		hr = pSurface->GetDC(&surfaceDC);
+		hr = pSrcSurface->GetDC(&surfaceDC);
 		assert(SUCCEEDED(hr));
 
 		// Draw flash frame
 		g_flashPlayer->DrawFrame(surfaceDC);
 
-		pSurface->ReleaseDC(surfaceDC);
-		pSurface->Release();
+		hr = pSrcSurface->ReleaseDC(surfaceDC);
+		assert(SUCCEEDED(hr));
 
 		// Update our GUI texture
-		g_device->UpdateTexture(pTexToUpdate, g_textureGUI);
+		IDirect3DSurface9* pDestSurface;
+		hr = g_textureGUI->GetSurfaceLevel(0, &pDestSurface);
+		assert(SUCCEEDED(hr));
+
+		for (unsigned int i = 0; i < g_flashPlayer->GetNumDirtyRects(); ++i)
+		{
+			const RECT* dirtyRect = g_flashPlayer->GetDirtyRect(i);
+			POINT destPoint = { dirtyRect->left, dirtyRect->top };
+			hr = g_device->UpdateSurface(pSrcSurface, dirtyRect, pDestSurface, &destPoint);
+			assert(SUCCEEDED(hr));
+		}
+
+		pDestSurface->Release();
+		pSrcSurface->Release();
+
+		/*for (unsigned int i = 0; i < g_flashPlayer->GetNumDirtyRects(); ++i)
+			g_textureGUI->AddDirtyRect(g_flashPlayer->GetDirtyRect(i));
+
+		hr = g_device->UpdateTexture(pTexToUpdate, g_textureGUI);
+		assert(SUCCEEDED(hr));*/
 	}
 
 	//---------------------------------------------------------------------
@@ -365,7 +385,7 @@ void DrawFrame()
 	// Begin frame
 	hr = g_device->BeginScene();
 	assert(SUCCEEDED(hr));
-	hr = g_device->Clear(0, NULL, D3DCLEAR_TARGET, 0xFFFFFFFF, 1.0f, 0);
+	hr = g_device->Clear(0, NULL, D3DCLEAR_TARGET, 0x00, 1.0f, 0);
 	assert(SUCCEEDED(hr));
 
 	// Draw the quad

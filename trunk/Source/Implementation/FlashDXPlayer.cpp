@@ -82,6 +82,7 @@ CFlashDXPlayer::CFlashDXPlayer(HMODULE flashDLL, unsigned int width, unsigned in
 	if (FAILED(hr))
 		return;
 
+	m_flashInterface->DisableLocalSecurity();
 	SetTransparencyMode(IFlashDXPlayer::TMODE_OPAQUE);
 	SetQuality(IFlashDXPlayer::QUALITY_HIGH);
 
@@ -421,6 +422,8 @@ void CFlashDXPlayer::ResizePlayer(unsigned int newWidth, unsigned int newHeight)
 
 		m_width = newWidth;
 		m_height = newHeight;
+
+		AddDirtyRect(NULL);
 	}
 }
 

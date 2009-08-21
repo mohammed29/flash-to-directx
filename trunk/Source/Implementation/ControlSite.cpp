@@ -84,6 +84,12 @@ HRESULT STDMETHODCALLTYPE CControlSite::QueryInterface(REFIID riid, LPVOID* ppv)
 		AddRef();
 		return S_OK;
 	}
+	else if (riid == __uuidof(ShockwaveFlashObjects::_IShockwaveFlashEvents))
+	{
+		*ppv = (ShockwaveFlashObjects::_IShockwaveFlashEvents*) this;
+		AddRef();
+		return S_OK;
+	}
 	else
 	{   
 		return E_NOTIMPL;

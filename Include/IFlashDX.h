@@ -139,7 +139,7 @@ struct IFlashDXPlayer
 	virtual void SetTransparencyMode(ETransparencyMode mode) = 0;
 
 	//---------------------------------------------------------------------
-	/// @brief				REPLACE_ME
+	/// @brief				Loads and starts playing the movie.
 	/// @param movie	REPLACE_ME
 	/// @return				bool
 	virtual bool LoadMovie(const wchar_t* movie) = 0;
@@ -366,26 +366,6 @@ struct IFlashDXPlayer
 
 	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME
-	/// @return				void
-	virtual void SendCut() = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				REPLACE_ME
-	/// @return				void
-	virtual void SendCopy() = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				REPLACE_ME
-	/// @return				void
-	virtual void SendPaste() = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				REPLACE_ME
-	/// @return				void
-	virtual void SendSelectAll() = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				REPLACE_ME
 	/// @param enable	REPLACE_ME
 	/// @return				void
 	virtual void EnableSound(bool enable) = 0;
@@ -399,7 +379,7 @@ struct IFlashDXPlayer
 	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME
 	/// @return				void
-	virtual void EndFunctionCall() = 0;
+	virtual std::wstring EndFunctionCall() = 0;
 
 	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME

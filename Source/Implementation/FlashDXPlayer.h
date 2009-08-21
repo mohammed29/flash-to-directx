@@ -87,13 +87,9 @@ public:
 	virtual void SendMouseWheel(int delta);
 	virtual void SendKey(bool pressed, int virtualKey, int extended);
 	virtual void SendChar(int character, int extended);
-	virtual void SendCut();
-	virtual void SendCopy();
-	virtual void SendPaste();
-	virtual void SendSelectAll();
 	virtual void EnableSound(bool enable);
 	virtual void BeginFunctionCall(const wchar_t* functionName);
-	virtual void EndFunctionCall();
+	virtual std::wstring EndFunctionCall();
 	virtual void BeginReturn();
 	virtual void EndReturn();
 	virtual void PushArgumentString(const wchar_t* string);
@@ -129,4 +125,6 @@ protected:
 	unsigned int			m_lastMouseX;
 	unsigned int			m_lastMouseY;
 	intptr_t				m_lastMouseButtons;
+
+	std::wstring			m_invokeString;
 };

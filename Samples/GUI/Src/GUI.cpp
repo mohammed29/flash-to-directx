@@ -220,10 +220,15 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		return FALSE;
 
 	g_flashPlayer->LoadMovie(movie_path);
-	g_flashPlayer->StartPlaying();
 
 	//g_flashPlayer->SetTransparencyMode(IFlashDXPlayer::TMODE_OPAQUE);
 	g_flashPlayer->SetBackgroundColor(0xFFFFFFFF);
+
+	g_flashPlayer->BeginFunctionCall(L"testFunctionCall");
+	g_flashPlayer->PushArgumentString(L"String");
+	g_flashPlayer->PushArgumentNumber(10.0f);
+	g_flashPlayer->PushArgumentBool(true);
+	std::wstring result = g_flashPlayer->EndFunctionCall();
 
 	// Show window
 	ShowWindow(hWnd, nCmdShow);
@@ -277,6 +282,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_LBUTTONUP:
 		if (g_flashPlayer)
 			g_flashPlayer->SetMouseButtonState(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), IFlashDXPlayer::eMouse1, false);
+		return 1;
+	case WM_KEYDOWN:
+		if (g_flashPlayer)
+			g_flashPlayer->SendKey(true, (int)wParam, (int)lParam);
+		return 1;
+	case WM_KEYUP:
+		if (g_flashPlayer)
+			g_flashPlayer->SendKey(false, (int)wParam, (int)lParam);
+		return 1;
+	case WM_CHAR:
+		if (g_flashPlayer)
+			g_flashPlayer->SendChar((int)wParam, (int)lParam);
 		return 1;
 	case WM_SIZE:
 		if (g_flashPlayer)

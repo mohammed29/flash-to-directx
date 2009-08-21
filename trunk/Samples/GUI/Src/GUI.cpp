@@ -27,10 +27,10 @@
 
 //---------------------------------------------------------------------
 const int max_loadstring = 100;
-const int window_width = 640;
-const int window_height = 480;
+const int window_width = 700;
+const int window_height = 350;
 const int num_textures_in_rotation = 2;
-const wchar_t* movie_path = L"Data/SelfMade.swf";
+const wchar_t* movie_path = L"Data/VT.swf";
 const bool use_transparency = false;
 
 // Global Variables:
@@ -268,10 +268,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_PAINT:
 		ValidateRect(hWnd, NULL);
-		break;
+		return 0;
 	case WM_DESTROY:
 		PostQuitMessage(0);
-		break;
+		return 0;
 	case WM_MOUSEMOVE:
 		if (g_flashPlayer)
 			g_flashPlayer->SetMousePos(GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
@@ -306,10 +306,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			RecreateTargets(g_params.BackBufferWidth, g_params.BackBufferHeight);
 		}
 		return 1;
+	case WM_SETCURSOR:
+		if (g_flashPlayer)
+		{
+			static bool restoreCursor = true;
+			if (LOWORD(lParam) != HTCLIENT)
+				restoreCursor = true;
+
+			if (restoreCursor)
+			{
+				restoreCursor = false;
+				break; // DefWindowProc will set the cursor
+			}
+			return 1;
+		}
+		break;
 	default:
-		return DefWindowProc(hWnd, message, wParam, lParam);
+		break;
 	}
-	return 0;
+
+	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
 //---------------------------------------------------------------------

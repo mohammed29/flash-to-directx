@@ -82,10 +82,8 @@ CFlashDXPlayer::CFlashDXPlayer(HMODULE flashDLL, unsigned int width, unsigned in
 	if (FAILED(hr))
 		return;
 
-	_bstr_t transparent = "transparent";
-	hr = m_flashInterface->put_WMode(transparent);
-	assert(SUCCEEDED(hr));
-	SetQuality(IFlashDXPlayer::QUALITY_BEST);
+	SetTransparencyMode(IFlashDXPlayer::TMODE_OPAQUE);
+	SetQuality(IFlashDXPlayer::QUALITY_HIGH);
 
 	hr = m_oleObject->DoVerb(OLEIVERB_INPLACEACTIVATE, NULL, pClientSite, 0, NULL, NULL);
 	assert(SUCCEEDED(hr));
@@ -144,11 +142,12 @@ void CFlashDXPlayer::AddDirtyRect(const RECT* pRect)
 		#define MIN_MACRO(x, y) ((x) < (y) ? (x) : (y))
 		#define MAX_MACRO(x, y) ((x) > (y) ? (x) : (y))
 
-		if (m_dirtyRect.left <= pRect->left && m_dirtyRect.top <= pRect->top &&
-			m_dirtyRect.right >= pRect->right && m_dirtyRect.bottom >= pRect->bottom)
-		{
-			return; // already included
-		}
+		for (std::vector<RECT>::iterator it = m_dirtyRects.begin(); it != m_dirtyRects.end(); ++it)
+			if (it->left <= pRect->left && it->top <= pRect->top &&
+				it->right >= pRect->right && it->bottom >= pRect->bottom)
+			{
+				return; // already included
+			}
 
 		RECT rect = { pRect->left, pRect->top, pRect->right, pRect->bottom };
 		rect.left = MAX_MACRO(rect.left, 0);

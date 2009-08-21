@@ -222,7 +222,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	g_flashPlayer->LoadMovie(movie_path);
 	g_flashPlayer->StartPlaying();
 
-	g_flashPlayer->SetTransparencyMode(IFlashDXPlayer::TMODE_OPAQUE);
+	//g_flashPlayer->SetTransparencyMode(IFlashDXPlayer::TMODE_OPAQUE);
 	g_flashPlayer->SetBackgroundColor(0xFFFFFFFF);
 
 	// Show window

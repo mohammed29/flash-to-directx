@@ -23,6 +23,7 @@
 #include "stdafx.h"
 #include "FlashDXPlayer.h"
 #include "shlwapi.h"
+#include "sstream"
 
 using namespace ShockwaveFlashObjects;
 
@@ -595,45 +596,37 @@ void CFlashDXPlayer::SendChar(int character, int extended)
 }
 
 //---------------------------------------------------------------------
-void CFlashDXPlayer::SendCut()
-{
-
-}
-
-//---------------------------------------------------------------------
-void CFlashDXPlayer::SendCopy()
-{
-
-}
-
-//---------------------------------------------------------------------
-void CFlashDXPlayer::SendPaste()
-{
-
-}
-
-//---------------------------------------------------------------------
-void CFlashDXPlayer::SendSelectAll()
-{
-
-}
-
-//---------------------------------------------------------------------
 void CFlashDXPlayer::EnableSound(bool enable)
 {
-
+	// NOT YET IMPLEMENTED
 }
 
 //---------------------------------------------------------------------
 void CFlashDXPlayer::BeginFunctionCall(const wchar_t* functionName)
 {
-
+	m_invokeString.clear();
+	m_invokeString += L"<invoke name=\"";
+	m_invokeString += functionName;
+	m_invokeString += L"\" returntype=\"xml\"><arguments>";
 }
 
 //---------------------------------------------------------------------
-void CFlashDXPlayer::EndFunctionCall()
+std::wstring CFlashDXPlayer::EndFunctionCall()
 {
+	m_invokeString += L"</arguments></invoke>";
 
+	BSTR response = NULL;
+	HRESULT hr = m_flashInterface->raw_CallFunction(_bstr_t(m_invokeString.c_str()), &response);
+	m_invokeString.clear();
+
+	if (response)
+	{
+		std::wstring result(response + 8);
+		std::wstring::size_type cutOff = result.find_last_of(L'<');
+		result.resize(cutOff);
+		return result;
+	}
+	return std::wstring();
 }
 
 //---------------------------------------------------------------------
@@ -651,19 +644,32 @@ void CFlashDXPlayer::EndReturn()
 //---------------------------------------------------------------------
 void CFlashDXPlayer::PushArgumentString(const wchar_t* string)
 {
+	if (m_invokeString.empty())
+		return;
 
+	m_invokeString += L"<string>";
+	m_invokeString += string;
+	m_invokeString += L"</string>";
 }
 
 //---------------------------------------------------------------------
 void CFlashDXPlayer::PushArgumentBool(bool boolean)
 {
-
+	m_invokeString += L"<bool>";
+	m_invokeString += boolean ? L"true" : L"false";
+	m_invokeString += L"</bool>";
 }
 
 //---------------------------------------------------------------------
 void CFlashDXPlayer::PushArgumentNumber(float number)
 {
+	m_invokeString += L"<number>";
 
+	std::wstringstream os;
+	os << number;
+
+	m_invokeString += os.str();
+	m_invokeString += L"</number>";
 }
 
 //---------------------------------------------------------------------

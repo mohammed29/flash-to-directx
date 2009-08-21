@@ -27,10 +27,10 @@
 
 //---------------------------------------------------------------------
 const int max_loadstring = 100;
-const int window_width = 700;
-const int window_height = 350;
+const int window_width = 640;
+const int window_height = 480;
 const int num_textures_in_rotation = 2;
-const wchar_t* movie_path = L"Data/VT.swf";
+const wchar_t* movie_path = L"Data/SelfMade.swf";
 
 // Global Variables:
 HINSTANCE hInst;								// current instance
@@ -385,7 +385,7 @@ void DrawFrame()
 	// Begin frame
 	hr = g_device->BeginScene();
 	assert(SUCCEEDED(hr));
-	hr = g_device->Clear(0, NULL, D3DCLEAR_TARGET, 0x00, 1.0f, 0);
+	hr = g_device->Clear(0, NULL, D3DCLEAR_TARGET, 0xFF00FF00, 1.0f, 0);
 	assert(SUCCEEDED(hr));
 
 	// Draw the quad

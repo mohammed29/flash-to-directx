@@ -685,17 +685,17 @@ std::wstring CFlashDXPlayer::CallFunction(const wchar_t* functionName,
 			Arg arg0, Arg arg1, Arg arg2, Arg arg3, Arg arg4, Arg arg5, Arg arg6, Arg arg7, Arg arg8, Arg arg9
 			)
 		{
-			if (arg0.type != Arg::empty)
+			if (arg0.type != Arg::eEmpty)
 			{
 				switch (arg0.type)
 				{
-				case Arg::string:
+				case Arg::eWString:
 					player->PushArgumentString(arg0.s);
 					break;
-				case Arg::number:
+				case Arg::eNumber:
 					player->PushArgumentNumber((float)arg0.n);
 					break;
-				case Arg::boolean:
+				case Arg::eBool:
 					player->PushArgumentBool(arg0.b);
 					break;
 				}

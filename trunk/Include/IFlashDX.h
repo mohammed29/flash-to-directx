@@ -414,10 +414,13 @@ struct IFlashDXPlayer
 	{
 		enum EType
 		{
-			empty = 0,
-			string,
-			number,
-			boolean,
+			eEmpty = 0,
+			eString,	// Not implemented
+			eWString,
+			eNumber,
+			eInt,		// Not implemented
+			eUInt,		// Not implemented
+			eBool,
 		};
 
 		EType type;
@@ -429,10 +432,10 @@ struct IFlashDXPlayer
 			bool b;
 		};
 
-		Arg() : type(empty) {}
-		Arg(const wchar_t* _s) : type(string), s(_s) {}
-		Arg(double _n) : type(number), n(_n) {}
-		Arg(bool _b) : type(boolean), b(_b) {}
+		Arg() : type(eEmpty) {}
+		Arg(const wchar_t* _s) : type(eWString), s(_s) {}
+		Arg(double _n) : type(eNumber), n(_n) {}
+		Arg(bool _b) : type(eBool), b(_b) {}
 	};
 
 	//---------------------------------------------------------------------

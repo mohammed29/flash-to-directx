@@ -681,7 +681,7 @@ std::wstring CFlashDXPlayer::CallFunction(const wchar_t* functionName,
 
 	struct _argumentsPusher
 	{
-		static void Iterate(IFlashDXPlayer *player,
+		static void Push(IFlashDXPlayer *player,
 			Arg arg0, Arg arg1, Arg arg2, Arg arg3, Arg arg4, Arg arg5, Arg arg6, Arg arg7, Arg arg8, Arg arg9
 			)
 		{
@@ -689,17 +689,23 @@ std::wstring CFlashDXPlayer::CallFunction(const wchar_t* functionName,
 			{
 				switch (arg0.type)
 				{
-					case Arg::string : player->PushArgumentString(arg0.s); break;
-					case Arg::number : player->PushArgumentNumber((float)arg0.n); break;
-					case Arg::boolean : player->PushArgumentBool(arg0.b); break;
+				case Arg::string:
+					player->PushArgumentString(arg0.s);
+					break;
+				case Arg::number:
+					player->PushArgumentNumber((float)arg0.n);
+					break;
+				case Arg::boolean:
+					player->PushArgumentBool(arg0.b);
+					break;
 				}
 
-				Iterate(player, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, Arg());
+				Push(player, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, Arg());
 			}
 		}
 	};
 
-	_argumentsPusher::Iterate(this, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+	_argumentsPusher::Push(this, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
 
 	return EndFunctionCall();
 }

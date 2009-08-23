@@ -479,31 +479,3 @@ struct IFlashDXEventHandler
         
     };
 };
-
-
-////---------------------------------------------------------------------
-///// Flash event handler interface.
-////---------------------------------------------------------------------
-//template<typename A0/*, typename A1, typename A2*/>
-//inline std::wstring IFlashDXPlayer::CallFunction(const wchar_t* functionName, Arg<A0> a0/*, A1 a1, A2 a2*/)
-//{
-//	BeginFunctionCall(functionName);
-//
-//	struct _argumentsPusher {
-//		static void Push(IFlashDXPlayer *player, const wchar_t* string) { player->PushArgumentString(string); }
-//		//static void Push(IFlashDXPlayer *player, const std::wstring& string) { player->PushArgumentString(string.c_str()); }
-//		static void Push(IFlashDXPlayer *player, float number) { player->PushArgumentNumber(number); }
-//		static void Push(IFlashDXPlayer *player, bool boolean) { player->PushArgumentNumber(boolean); }
-//		//typedef NoArg No;
-//		//template<typename A0/*, typename A1, typename A2*/>
-//		static void Iterate(IFlashDXPlayer *player, Arg<bool> a0/*, A1 a1, A2 a2*/) {
-//			Push(player, a0.v);
-//			Iterate(player/*, a1, a2*/, Arg<void>());
-//		}
-//		static void Iterate(IFlashDXPlayer *player, Arg<void> a0/*, No a1, No a2*/) {}
-//	};
-//
-//	_argumentsPusher::Iterate(this, a0/*, a1, a2*/);
-//
-//	return EndFunctionCall();
-//}

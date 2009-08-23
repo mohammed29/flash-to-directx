@@ -410,6 +410,41 @@ struct IFlashDXPlayer
 	virtual void PushArgumentNumber(float number) = 0;
 
 	//---------------------------------------------------------------------
+	struct Arg
+	{
+		enum EType
+		{
+			empty = 0,
+			string,
+			number,
+			boolean,
+		};
+
+		EType type;
+
+		union
+		{
+			const wchar_t* s;
+			double n;
+			bool b;
+		};
+
+		Arg() : type(empty) {}
+		Arg(const wchar_t* _s) : type(string), s(_s) {}
+		Arg(double _n) : type(number), n(_n) {}
+		Arg(bool _b) : type(boolean), b(_b) {}
+	};
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @param number	REPLACE_ME
+	/// @return				std::wstring
+	virtual std::wstring CallFunction(const wchar_t* functionName,
+		Arg arg0 = Arg(), Arg arg1 = Arg(), Arg arg2 = Arg(), Arg arg3 = Arg(), Arg arg4 = Arg(),
+		Arg arg5 = Arg(), Arg arg6 = Arg(), Arg arg7 = Arg(), Arg arg8 = Arg(), Arg arg9 = Arg()
+		) = 0;
+
+	//---------------------------------------------------------------------
 	/// @brief				Adds flash 
 	/// @param pHandler	REPLACE_ME
 	/// @return				void
@@ -444,3 +479,31 @@ struct IFlashDXEventHandler
         
     };
 };
+
+
+////---------------------------------------------------------------------
+///// Flash event handler interface.
+////---------------------------------------------------------------------
+//template<typename A0/*, typename A1, typename A2*/>
+//inline std::wstring IFlashDXPlayer::CallFunction(const wchar_t* functionName, Arg<A0> a0/*, A1 a1, A2 a2*/)
+//{
+//	BeginFunctionCall(functionName);
+//
+//	struct _argumentsPusher {
+//		static void Push(IFlashDXPlayer *player, const wchar_t* string) { player->PushArgumentString(string); }
+//		//static void Push(IFlashDXPlayer *player, const std::wstring& string) { player->PushArgumentString(string.c_str()); }
+//		static void Push(IFlashDXPlayer *player, float number) { player->PushArgumentNumber(number); }
+//		static void Push(IFlashDXPlayer *player, bool boolean) { player->PushArgumentNumber(boolean); }
+//		//typedef NoArg No;
+//		//template<typename A0/*, typename A1, typename A2*/>
+//		static void Iterate(IFlashDXPlayer *player, Arg<bool> a0/*, A1 a1, A2 a2*/) {
+//			Push(player, a0.v);
+//			Iterate(player/*, a1, a2*/, Arg<void>());
+//		}
+//		static void Iterate(IFlashDXPlayer *player, Arg<void> a0/*, No a1, No a2*/) {}
+//	};
+//
+//	_argumentsPusher::Iterate(this, a0/*, a1, a2*/);
+//
+//	return EndFunctionCall();
+//}

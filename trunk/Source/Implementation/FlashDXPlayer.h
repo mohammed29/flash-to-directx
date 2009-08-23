@@ -95,6 +95,10 @@ public:
 	virtual void PushArgumentString(const wchar_t* string);
 	virtual void PushArgumentBool(bool boolean);
 	virtual void PushArgumentNumber(float number);
+	virtual std::wstring CallFunction(const wchar_t* functionName,
+		Arg arg0 = Arg(), Arg arg1 = Arg(), Arg arg2 = Arg(), Arg arg3 = Arg(), Arg arg4 = Arg(),
+		Arg arg5 = Arg(), Arg arg6 = Arg(), Arg arg7 = Arg(), Arg arg8 = Arg(), Arg arg9 = Arg()
+		);
 	virtual void AddEventHandler(struct IFlashDXEventHandler* pHandler);
 	virtual void RemoveEventHandler(struct IFlashDXEventHandler* pHandler);
 	virtual struct IFlashDXEventHandler* GetEventHandlerByIndex(unsigned int index);

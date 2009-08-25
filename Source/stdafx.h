@@ -34,3 +34,4 @@
 
 #include "Implementation/FlashOCXInterface.h"
 #include <vector>
+#include <string>

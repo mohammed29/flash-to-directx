@@ -343,11 +343,14 @@ void CFlashDXPlayer::CallFrame(int frame, const wchar_t* timelineTarget /*= L"/"
 }
 
 //---------------------------------------------------------------------
-std::wstring CFlashDXPlayer::GetCurrentLabel(const wchar_t* timelineTarget /*= L"/"*/)
+const wchar_t* CFlashDXPlayer::GetCurrentLabel(const wchar_t* timelineTarget /*= L"/"*/)
 {
 	if (m_flashInterface)
-		return std::wstring(m_flashInterface->TCurrentLabel(_bstr_t(timelineTarget)));
-	return std::wstring();
+	{
+		m_tempStorage = m_flashInterface->TCurrentLabel(_bstr_t(timelineTarget));
+		return m_tempStorage.c_str();
+	}
+	return NULL;
 }
 
 //---------------------------------------------------------------------
@@ -365,11 +368,14 @@ void CFlashDXPlayer::CallLabel(const wchar_t* label, const wchar_t* timelineTarg
 }
 
 //---------------------------------------------------------------------
-std::wstring CFlashDXPlayer::GetVariable(const wchar_t* name)
+const wchar_t* CFlashDXPlayer::GetVariable(const wchar_t* name)
 {
 	if (m_flashInterface)
-		std::wstring(m_flashInterface->GetVariable(_bstr_t(name)));
-	return std::wstring();
+	{
+		m_tempStorage = m_flashInterface->GetVariable(_bstr_t(name));
+		return m_tempStorage.c_str();
+	}
+	return NULL;
 }
 
 //---------------------------------------------------------------------
@@ -380,11 +386,14 @@ void CFlashDXPlayer::SetVariable(const wchar_t* name, const wchar_t* value)
 }
 
 //---------------------------------------------------------------------
-std::wstring CFlashDXPlayer::GetProperty(int iProperty, const wchar_t* timelineTarget /*= L"/"*/)
+const wchar_t* CFlashDXPlayer::GetProperty(int iProperty, const wchar_t* timelineTarget /*= L"/"*/)
 {
 	if (m_flashInterface)
-		return std::wstring(m_flashInterface->TGetProperty(_bstr_t(timelineTarget), iProperty));
-	return std::wstring();
+	{
+		m_tempStorage = m_flashInterface->TGetProperty(_bstr_t(timelineTarget), iProperty);
+		return m_tempStorage.c_str();
+	}
+	return NULL;
 }
 
 //---------------------------------------------------------------------
@@ -611,7 +620,7 @@ void CFlashDXPlayer::BeginFunctionCall(const wchar_t* functionName)
 }
 
 //---------------------------------------------------------------------
-std::wstring CFlashDXPlayer::EndFunctionCall()
+const wchar_t* CFlashDXPlayer::EndFunctionCall()
 {
 	m_invokeString += L"</arguments></invoke>";
 
@@ -621,12 +630,12 @@ std::wstring CFlashDXPlayer::EndFunctionCall()
 
 	if (response)
 	{
-		std::wstring result(response + 8);
-		std::wstring::size_type cutOff = result.find_last_of(L'<');
-		result.resize(cutOff);
-		return result;
+		m_tempStorage.assign(response + 8);
+		std::wstring::size_type cutOff = m_tempStorage.find_last_of(L'<');
+		m_tempStorage.resize(cutOff);
+		return m_tempStorage.c_str();
 	}
-	return std::wstring();
+	return NULL;
 }
 
 //---------------------------------------------------------------------
@@ -639,6 +648,21 @@ void CFlashDXPlayer::BeginReturn()
 void CFlashDXPlayer::EndReturn()
 {
 
+}
+
+//---------------------------------------------------------------------
+void CFlashDXPlayer::PushArgumentString(const char* string)
+{
+	if (m_invokeString.empty())
+		return;
+
+	m_invokeString += L"<string>";
+
+	std::wstringstream os;
+	os << string;
+
+	m_invokeString += os.str();
+	m_invokeString += L"</string>";
 }
 
 //---------------------------------------------------------------------
@@ -655,14 +679,20 @@ void CFlashDXPlayer::PushArgumentString(const wchar_t* string)
 //---------------------------------------------------------------------
 void CFlashDXPlayer::PushArgumentBool(bool boolean)
 {
-	m_invokeString += L"<bool>";
+	if (m_invokeString.empty())
+		return;
+
+	m_invokeString += L"<string>";
 	m_invokeString += boolean ? L"true" : L"false";
-	m_invokeString += L"</bool>";
+	m_invokeString += L"</string>";
 }
 
 //---------------------------------------------------------------------
 void CFlashDXPlayer::PushArgumentNumber(float number)
 {
+	if (m_invokeString.empty())
+		return;
+
 	m_invokeString += L"<number>";
 
 	std::wstringstream os;
@@ -673,7 +703,7 @@ void CFlashDXPlayer::PushArgumentNumber(float number)
 }
 
 //---------------------------------------------------------------------
-std::wstring CFlashDXPlayer::CallFunction(const wchar_t* functionName,
+const wchar_t* CFlashDXPlayer::CallFunction(const wchar_t* functionName,
 	Arg arg0, Arg arg1, Arg arg2, Arg arg3, Arg arg4, Arg arg5, Arg arg6, Arg arg7, Arg arg8, Arg arg9
 	)
 {
@@ -689,8 +719,11 @@ std::wstring CFlashDXPlayer::CallFunction(const wchar_t* functionName,
 			{
 				switch (arg0.type)
 				{
-				case Arg::eWString:
+				case Arg::eString:
 					player->PushArgumentString(arg0.s);
+					break;
+				case Arg::eWString:
+					player->PushArgumentString(arg0.w);
 					break;
 				case Arg::eNumber:
 					player->PushArgumentNumber(arg0.n);

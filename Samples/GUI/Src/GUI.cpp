@@ -225,13 +225,16 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	g_flashPlayer->SetTransparencyMode(use_transparency ? IFlashDXPlayer::TMODE_TRANSPARENT : IFlashDXPlayer::TMODE_OPAQUE);
 	g_flashPlayer->SetBackgroundColor(0xFFFFFFFF);
 
+	// Function call
 	g_flashPlayer->BeginFunctionCall(L"testFunctionCall");
-	g_flashPlayer->PushArgumentString(L"String");
+	g_flashPlayer->PushArgumentString("String");
+	g_flashPlayer->PushArgumentString(L"WString");
 	g_flashPlayer->PushArgumentNumber(10.0f);
 	g_flashPlayer->PushArgumentBool(true);
 	std::wstring result = g_flashPlayer->EndFunctionCall();
 
-	std::wstring result2 = g_flashPlayer->CallFunction(L"testFunctionCall", L"String", 1.0f, true);
+	// Easy way of function call
+	std::wstring result2 = g_flashPlayer->CallFunction(L"testFunctionCall", "String", L"WString", 10, true);
 
 	// Show window
 	ShowWindow(hWnd, nCmdShow);

@@ -67,12 +67,12 @@ public:
 	virtual void GotoFrame(int frame);
 	virtual void GotoFrame(int frame, const wchar_t* timelineTarget);
 	virtual void CallFrame(int frame, const wchar_t* timelineTarget = L"/");
-	virtual std::wstring GetCurrentLabel(const wchar_t* timelineTarget = L"/");
+	virtual const wchar_t* GetCurrentLabel(const wchar_t* timelineTarget = L"/");
 	virtual void GotoLabel(const wchar_t* label, const wchar_t* timelineTarget = L"/");
 	virtual void CallLabel(const wchar_t* label, const wchar_t* timelineTarget = L"/");
-	virtual std::wstring GetVariable(const wchar_t* name);
+	virtual const wchar_t* GetVariable(const wchar_t* name);
 	virtual void SetVariable(const wchar_t* name, const wchar_t* value);
-	virtual std::wstring GetProperty(int iProperty, const wchar_t* timelineTarget = L"/");
+	virtual const wchar_t* GetProperty(int iProperty, const wchar_t* timelineTarget = L"/");
 	virtual double GetPropertyAsNumber(int iProperty, const wchar_t* timelineTarget = L"/");
 	virtual void SetProperty(int iProperty, const wchar_t* value, const wchar_t* timelineTarget = L"/");
 	virtual void SetProperty(int iProperty, double value, const wchar_t* timelineTarget = L"/");
@@ -89,13 +89,14 @@ public:
 	virtual void SendChar(int character, int extended);
 	virtual void EnableSound(bool enable);
 	virtual void BeginFunctionCall(const wchar_t* functionName);
-	virtual std::wstring EndFunctionCall();
+	virtual const wchar_t* EndFunctionCall();
 	virtual void BeginReturn();
 	virtual void EndReturn();
+	virtual void PushArgumentString(const char* string);
 	virtual void PushArgumentString(const wchar_t* string);
 	virtual void PushArgumentBool(bool boolean);
 	virtual void PushArgumentNumber(float number);
-	virtual std::wstring CallFunction(const wchar_t* functionName,
+	virtual const wchar_t* CallFunction(const wchar_t* functionName,
 		Arg arg0 = Arg(), Arg arg1 = Arg(), Arg arg2 = Arg(), Arg arg3 = Arg(), Arg arg4 = Arg(),
 		Arg arg5 = Arg(), Arg arg6 = Arg(), Arg arg7 = Arg(), Arg arg8 = Arg(), Arg arg9 = Arg()
 		);
@@ -131,4 +132,5 @@ protected:
 	intptr_t				m_lastMouseButtons;
 
 	std::wstring			m_invokeString;
+	std::wstring			m_tempStorage;
 };

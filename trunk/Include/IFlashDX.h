@@ -24,8 +24,6 @@
 
 #pragma once
 
-#include <string>
-
 //---------------------------------------------------------------------
 /// @brief				Returns pointer on instance of Flash-to-DirectX.
 extern struct IFlashDX* GetFlashToDirectXInstance();
@@ -222,8 +220,8 @@ struct IFlashDXPlayer
 
 	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME
-	/// @return				std::wstring
-	virtual std::wstring GetCurrentLabel(const wchar_t* timelineTarget = L"/") = 0;
+	/// @return				Label name in temporarily storage. Copy it if you wish to keep it.
+	virtual const wchar_t* GetCurrentLabel(const wchar_t* timelineTarget = L"/") = 0;
 
 	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME
@@ -242,8 +240,7 @@ struct IFlashDXPlayer
 	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME
 	/// @param name	REPLACE_ME
-	/// @return				std::wstring
-	virtual std::wstring GetVariable(const wchar_t* name) = 0;
+	virtual const wchar_t* GetVariable(const wchar_t* name) = 0;
 
 	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME
@@ -256,8 +253,8 @@ struct IFlashDXPlayer
 	/// @brief				REPLACE_ME
 	/// @param iProperty	REPLACE_ME
 	/// @param timelineTarget	REPLACE_ME
-	/// @return				std::wstring
-	virtual std::wstring GetProperty(int iProperty, const wchar_t* timelineTarget = L"/") = 0;
+	/// @return				Property value in temporarily storage. Copy it if you wish to keep it.
+	virtual const wchar_t* GetProperty(int iProperty, const wchar_t* timelineTarget = L"/") = 0;
 
 	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME
@@ -378,8 +375,8 @@ struct IFlashDXPlayer
 
 	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME
-	/// @return				void
-	virtual std::wstring EndFunctionCall() = 0;
+	/// @return				Result of the call in temporarily storage. Copy it if you wish to keep it.
+	virtual const wchar_t* EndFunctionCall() = 0;
 
 	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME
@@ -390,6 +387,12 @@ struct IFlashDXPlayer
 	/// @brief				REPLACE_ME
 	/// @return				void
 	virtual void EndReturn() = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				REPLACE_ME
+	/// @param string	REPLACE_ME
+	/// @return				void
+	virtual void PushArgumentString(const char* string) = 0;
 
 	//---------------------------------------------------------------------
 	/// @brief				REPLACE_ME
@@ -415,7 +418,7 @@ struct IFlashDXPlayer
 		enum EType
 		{
 			eEmpty = 0,
-			eString,	// Not implemented
+			eString,
 			eWString,
 			eNumber,
 			eBool,
@@ -425,22 +428,33 @@ struct IFlashDXPlayer
 
 		union
 		{
-			const wchar_t* s;
+			const char* s;
+			const wchar_t* w;
 			float n;
 			bool b;
 		};
 
 		Arg() : type(eEmpty) {}
-		Arg(const wchar_t* _s) : type(eWString), s(_s) {}
+		Arg(const char* _s) : type(eString), s(_s) {}
+		Arg(const wchar_t* _w) : type(eWString), w(_w) {}
+		Arg(char _n) : type(eNumber), n((float)_n) {}
+		Arg(unsigned char _n) : type(eNumber), n((float)_n) {}
+		Arg(short _n) : type(eNumber), n((float)_n) {}
+		Arg(unsigned short _n) : type(eNumber), n((float)_n) {}
+		Arg(int _n) : type(eNumber), n((float)_n) {}
+		Arg(unsigned int _n) : type(eNumber), n((float)_n) {}
+		Arg(__int64 _n) : type(eNumber), n((float)_n) {}
+		Arg(unsigned __int64 _n) : type(eNumber), n((float)_n) {}
 		Arg(float _n) : type(eNumber), n(_n) {}
+		Arg(double _n) : type(eNumber), n((float)_n) {}
 		Arg(bool _b) : type(eBool), b(_b) {}
 	};
 
 	//---------------------------------------------------------------------
-	/// @brief				REPLACE_ME
+	/// @brief				Wrapper around BeginFunctionCall()/EndFunctionCall().
 	/// @param number	REPLACE_ME
-	/// @return				std::wstring
-	virtual std::wstring CallFunction(const wchar_t* functionName,
+	/// @return				Result of the call in temporarily storage. Copy it if you wish to keep it.
+	virtual const wchar_t* CallFunction(const wchar_t* functionName,
 		Arg arg0 = Arg(), Arg arg1 = Arg(), Arg arg2 = Arg(), Arg arg3 = Arg(), Arg arg4 = Arg(),
 		Arg arg5 = Arg(), Arg arg6 = Arg(), Arg arg7 = Arg(), Arg arg8 = Arg(), Arg arg9 = Arg()
 		) = 0;

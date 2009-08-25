@@ -231,10 +231,21 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	g_flashPlayer->PushArgumentString(L"WString");
 	g_flashPlayer->PushArgumentNumber(10.0f);
 	g_flashPlayer->PushArgumentBool(true);
-	std::wstring result = g_flashPlayer->EndFunctionCall();
+
+	std::wstring result;
+	if (const wchar_t* pResult = g_flashPlayer->EndFunctionCall())
+		result = pResult;
+
+	result += L"\n";
+	OutputDebugString(result.c_str());
 
 	// Easy way of function call
-	std::wstring result2 = g_flashPlayer->CallFunction(L"testFunctionCall", "String", L"WString", 10, true);
+	std::wstring result2;
+	if (const wchar_t* pResult = g_flashPlayer->CallFunction(L"testFunctionCall", "String", L"WString", 10, true))
+		result2 = pResult;
+
+	result2 += L"\n";
+	OutputDebugString(result2.c_str());
 
 	// Show window
 	ShowWindow(hWnd, nCmdShow);

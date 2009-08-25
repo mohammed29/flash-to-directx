@@ -682,9 +682,7 @@ void CFlashDXPlayer::PushArgumentBool(bool boolean)
 	if (m_invokeString.empty())
 		return;
 
-	m_invokeString += L"<string>";
-	m_invokeString += boolean ? L"true" : L"false";
-	m_invokeString += L"</string>";
+	m_invokeString += boolean ? L"<true/>" : L"<false/>";
 }
 
 //---------------------------------------------------------------------

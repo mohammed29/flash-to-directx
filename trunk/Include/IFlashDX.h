@@ -418,8 +418,6 @@ struct IFlashDXPlayer
 			eString,	// Not implemented
 			eWString,
 			eNumber,
-			eInt,		// Not implemented
-			eUInt,		// Not implemented
 			eBool,
 		};
 
@@ -428,13 +426,13 @@ struct IFlashDXPlayer
 		union
 		{
 			const wchar_t* s;
-			double n;
+			float n;
 			bool b;
 		};
 
 		Arg() : type(eEmpty) {}
 		Arg(const wchar_t* _s) : type(eWString), s(_s) {}
-		Arg(double _n) : type(eNumber), n(_n) {}
+		Arg(float _n) : type(eNumber), n(_n) {}
 		Arg(bool _b) : type(eBool), b(_b) {}
 	};
 

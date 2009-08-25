@@ -231,7 +231,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	g_flashPlayer->PushArgumentBool(true);
 	std::wstring result = g_flashPlayer->EndFunctionCall();
 
-	std::wstring result2 = g_flashPlayer->CallFunction(L"testFunctionCall", L"String", 1.0, true);
+	std::wstring result2 = g_flashPlayer->CallFunction(L"testFunctionCall", L"String", 1.0f, true);
 
 	// Show window
 	ShowWindow(hWnd, nCmdShow);

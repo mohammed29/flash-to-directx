@@ -693,7 +693,7 @@ std::wstring CFlashDXPlayer::CallFunction(const wchar_t* functionName,
 					player->PushArgumentString(arg0.s);
 					break;
 				case Arg::eNumber:
-					player->PushArgumentNumber((float)arg0.n);
+					player->PushArgumentNumber(arg0.n);
 					break;
 				case Arg::eBool:
 					player->PushArgumentBool(arg0.b);

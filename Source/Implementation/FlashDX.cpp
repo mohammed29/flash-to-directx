@@ -72,7 +72,13 @@ double CFlashDX::GetFlashVersion()
 //---------------------------------------------------------------------
 struct IFlashDXPlayer* CFlashDX::CreatePlayer(unsigned int width, unsigned int height)
 {
-	return new CFlashDXPlayer(m_flashLibHandle, width, height);
+	CFlashDXPlayer* player = new CFlashDXPlayer(m_flashLibHandle, width, height);
+	if (player->m_flashInterface == NULL)
+	{
+		delete player;
+		return NULL;
+	}
+	return player;
 }
 
 //---------------------------------------------------------------------

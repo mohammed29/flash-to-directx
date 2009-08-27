@@ -218,7 +218,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	g_flashPlayer = g_flashDX->CreatePlayer(window_width, window_height);
 
 	if (!g_flashPlayer)
+	{
+		MessageBox(NULL, L"Flash Player failed to initialize.", L"Error", MB_OK);
 		return FALSE;
+	}
 
 	g_flashPlayer->LoadMovie(movie_path);
 

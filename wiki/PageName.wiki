@@ -1,8 +1,0 @@
-#summary Library use.
-
-= Introduction =
-
-Until stable version will be introduced please use the Source tab to get library sources and compile them on your own.
-
-
-= Details =

@@ -1,5 +1,5 @@
 #summary Transparency issues.
-#labels transparency,issues
+#labels Phase-Requirements
 
 = Introduction =
 
@@ -8,4 +8,4 @@ There is some known transparency issues with the text that uses device fonts.
 
 = Details =
 
-For some reason (probably _DrawText()_) alpha for this pixels is set to zero, but color channels are OK. And even setting transparency mode to opaque don't fix the problem if you use *A8R8G8B8* texture or equivalent. Just don't use such fonts (use anti-aliased font or set *'cacheAsBitmap'* property of the object to true) if you want proper transparency. Otherwise use *X8R8G8B8* texture or any equivalent with disabled alpha channel.
+For some reason (probably _`DrawText()`_) alpha for this pixels is set to zero, but color channels are OK. And even setting transparency mode to opaque don't fix the problem if you use *`A8R8G8B8`* texture or equivalent. Just don't use such fonts (use anti-aliased font or set *'cacheAsBitmap'* property of the object to true) if you want proper transparency. Otherwise use *`X8R8G8B8`* texture or any equivalent with disabled alpha channel.

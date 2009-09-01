@@ -1,0 +1,13 @@
+#summary Keyboard issues.
+#labels Phase-Implementation
+
+= Introduction =
+
+There is some known issues with Flash movies that uses keyboard (games). While this is not an issue for most GUIs, some of GUI movies can benefit from WM_KEYDOWN/WM_KEYUP processing. WM_CHAR processing (passwords, chats, etc) is working nicely.
+
+
+= Details =
+
+Problem is - IOleInPlaceObjectWindowless::OnWindowMessage() returns S_FALSE on WM_KEYDOWN and WM_KEYUP messages and skips processing of them in Flash movies.
+
+Any input on this would be appreciated.

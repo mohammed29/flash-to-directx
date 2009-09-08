@@ -75,5 +75,8 @@ public:
 	HRESULT OnProgress(long percentDone);
 
 	//---------------------------------------------------------------------
-	HRESULT FSCommand(_bstr_t command, _bstr_t args);	
+	HRESULT FSCommand(_bstr_t command, _bstr_t args);
+
+	//---------------------------------------------------------------------
+	HRESULT FlashCall(_bstr_t request);
 };

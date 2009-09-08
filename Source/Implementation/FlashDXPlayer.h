@@ -45,6 +45,10 @@ public:
 	void AddDirtyRect(const RECT* pRect);
 
 	//---------------------------------------------------------------------
+	/// Invokes C++ code from Flash.
+	void Invoke(const wchar_t* invokeString);
+
+	//---------------------------------------------------------------------
 	// IFlashDXPlayer implementations.
 	//---------------------------------------------------------------------
 	virtual void SetUserData(intptr_t data);
@@ -133,4 +137,6 @@ protected:
 
 	std::wstring			m_invokeString;
 	std::wstring			m_tempStorage;
+
+	std::vector<struct IFlashDXEventHandler*> m_eventHandlers;
 };

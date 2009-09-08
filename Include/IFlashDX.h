@@ -419,6 +419,8 @@ struct IFlashDXPlayer
 
 	//---------------------------------------------------------------------
 	// TODO: arrays passing
+	//---------------------------------------------------------------------
+	// TODO: null passing
 
 	//---------------------------------------------------------------------
 	/// Automatic argument conversion helper.
@@ -498,6 +500,8 @@ struct IFlashDXEventHandler
 {
     enum EEventType
     {
-        
+        EVENT_FUNCTION_CALL = 0,
     };
+
+
 };

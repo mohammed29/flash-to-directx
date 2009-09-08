@@ -23,6 +23,7 @@
 #include "stdafx.h"
 #include "FlashDXPlayer.h"
 #include "shlwapi.h"
+#include "algorithm"
 #include "sstream"
 
 using namespace ShockwaveFlashObjects;
@@ -84,6 +85,8 @@ CFlashDXPlayer::CFlashDXPlayer(HMODULE flashDLL, unsigned int width, unsigned in
 		return;
 
 	m_flashInterface->DisableLocalSecurity();
+	m_flashInterface->PutEmbedMovie(FALSE);
+	m_flashInterface->PutAllowScriptAccess(L"always");
 	SetTransparencyMode(IFlashDXPlayer::TMODE_OPAQUE);
 	SetQuality(IFlashDXPlayer::QUALITY_HIGH);
 
@@ -653,9 +656,6 @@ void CFlashDXPlayer::EndReturn()
 //---------------------------------------------------------------------
 void CFlashDXPlayer::PushArgumentString(const char* string)
 {
-	if (m_invokeString.empty())
-		return;
-
 	m_invokeString += L"<string>";
 
 	std::wstringstream os;
@@ -668,9 +668,6 @@ void CFlashDXPlayer::PushArgumentString(const char* string)
 //---------------------------------------------------------------------
 void CFlashDXPlayer::PushArgumentString(const wchar_t* string)
 {
-	if (m_invokeString.empty())
-		return;
-
 	m_invokeString += L"<string>";
 	m_invokeString += string;
 	m_invokeString += L"</string>";
@@ -679,18 +676,12 @@ void CFlashDXPlayer::PushArgumentString(const wchar_t* string)
 //---------------------------------------------------------------------
 void CFlashDXPlayer::PushArgumentBool(bool boolean)
 {
-	if (m_invokeString.empty())
-		return;
-
 	m_invokeString += boolean ? L"<true/>" : L"<false/>";
 }
 
 //---------------------------------------------------------------------
 void CFlashDXPlayer::PushArgumentNumber(float number)
 {
-	if (m_invokeString.empty())
-		return;
-
 	m_invokeString += L"<number>";
 
 	std::wstringstream os;
@@ -744,23 +735,36 @@ const wchar_t* CFlashDXPlayer::CallFunction(const wchar_t* functionName,
 //---------------------------------------------------------------------
 void CFlashDXPlayer::AddEventHandler(struct IFlashDXEventHandler* pHandler)
 {
-
+	m_eventHandlers.push_back(pHandler);
 }
 
 //---------------------------------------------------------------------
 void CFlashDXPlayer::RemoveEventHandler(struct IFlashDXEventHandler* pHandler)
 {
-
+	std::vector<IFlashDXEventHandler*>::iterator it = std::find(m_eventHandlers.begin(), m_eventHandlers.end(), pHandler);
+	if (it != m_eventHandlers.end())
+		m_eventHandlers.erase(it);
 }
 
 //---------------------------------------------------------------------
 struct IFlashDXEventHandler* CFlashDXPlayer::GetEventHandlerByIndex(unsigned int index)
 {
+	if (index < (unsigned int)m_eventHandlers.size())
+		return m_eventHandlers[index];
 	return NULL;
 }
 
 //---------------------------------------------------------------------
 unsigned int CFlashDXPlayer::GetNumEventHandlers() const
 {
-	return 0;
+	return (unsigned int)m_eventHandlers.size();
+}
+
+//---------------------------------------------------------------------
+void CFlashDXPlayer::Invoke(const wchar_t* invokeString)
+{
+	m_invokeString.clear();
+	PushArgumentString(L"cool");
+
+	m_flashInterface->SetReturnValue(_bstr_t(m_invokeString.c_str()));
 }

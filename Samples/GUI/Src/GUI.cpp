@@ -30,7 +30,7 @@ const int max_loadstring = 100;
 const int window_width = 700;
 const int window_height = 350;
 const int num_textures_in_rotation = 2;
-const wchar_t* movie_path = L"Data/VT.swf";
+const wchar_t* movie_path = L"Data/SelfMade.swf";
 const bool use_transparency = false;
 
 // Global Variables:

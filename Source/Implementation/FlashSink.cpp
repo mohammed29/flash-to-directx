@@ -146,23 +146,30 @@ HRESULT STDMETHODCALLTYPE CFlashSink::GetIDsOfNames(REFIID riid, LPOLESTR* rgszN
 //---------------------------------------------------------------------
 HRESULT STDMETHODCALLTYPE CFlashSink::Invoke(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags, ::DISPPARAMS __RPC_FAR *pDispParams, VARIANT __RPC_FAR *pVarResult, ::EXCEPINFO __RPC_FAR *pExcepInfo, UINT __RPC_FAR *puArgErr)
 {
-	switch(dispIdMember)
+	/*HRESULT hr; ITypeInfo* pTypeInfo = NULL;
+	hr = GetTypeInfo(0, lcid, &pTypeInfo);
+	if (FAILED(hr))
+		return hr;
+
+	hr = DispInvoke(static_cast<IDispatch*>(this), pTypeInfo, dispIdMember, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr);
+	pTypeInfo->Release();
+
+	return hr;*/
+
+	switch (dispIdMember)
 	{
-	case 0x7a6:			
-		break;
-	case 0x96:			
-		if ((pDispParams->cArgs == 2) &&
-			(pDispParams->rgvarg[0].vt == VT_BSTR) &&
-			(pDispParams->rgvarg[1].vt == VT_BSTR))
+	case 197:
+		if ((pDispParams->cArgs == 1) &&
+			(pDispParams->rgvarg[0].vt == VT_BSTR))
 		{
-			FSCommand(pDispParams->rgvarg[1].bstrVal, pDispParams->rgvarg[0].bstrVal);
+			return FlashCall(pDispParams->rgvarg[0].bstrVal);
 		}
 		break;
-	case DISPID_READYSTATECHANGE:					
+	case DISPID_READYSTATECHANGE:
 		break;
-	default:			
+	default:
 		return DISP_E_MEMBERNOTFOUND;
-	} 
+	}
 
 	return NOERROR;
 }
@@ -170,19 +177,24 @@ HRESULT STDMETHODCALLTYPE CFlashSink::Invoke(DISPID dispIdMember, REFIID riid, L
 //---------------------------------------------------------------------
 HRESULT CFlashSink::OnReadyStateChange(long newState)
 {
-	return S_OK;
+	return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------
 HRESULT CFlashSink::OnProgress(long percentDone)
 {
-	return S_OK;
+	return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------
 HRESULT CFlashSink::FSCommand(_bstr_t command, _bstr_t args)
 {
-	//if (m_flashPlayer->m_flashListener != NULL)
-	//	m_flashPlayer->m_flashListener->FlashCommand(mFlashWidget->mId, (char*) command, (char*) args);
+	return E_NOTIMPL;
+}
+
+//---------------------------------------------------------------------
+HRESULT CFlashSink::FlashCall(_bstr_t request)
+{
+	m_flashPlayer->Invoke(request);
 	return S_OK;
 }

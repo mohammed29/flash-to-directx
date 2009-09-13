@@ -24,7 +24,7 @@
 
 #include "../Resources/Resource.h"
 #include "../../../Include/IFlashDX.h"
-#include "../../../Include/FlashDXPlayerBind.h"
+#include "../../../Include/ASInterface.h"
 
 #ifndef SAFE_RELEASE
 #define SAFE_RELEASE(value) if (value) { (value)->Release(); (value) = NULL; }

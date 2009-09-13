@@ -59,7 +59,7 @@ struct EventHandler : IFlashDXEventHandler
 };
 EventHandler g_eventHandler;
 
-FlashDXPlayerBind g_playerBind;
+ASInterface* g_playerASI;
 
 IDirect3D9*			g_direct3D = NULL;
 IDirect3DDevice9*	g_device = NULL;
@@ -245,7 +245,21 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 	g_flashPlayer->AddEventHandler(&g_eventHandler);
 
-	g_playerBind.SetPlayer(g_flashPlayer);
+	g_playerASI = new ASInterface(g_flashPlayer);
+
+	//---------------------------------------------------------------------
+	// Function callbacks
+	//---------------------------------------------------------------------
+	{
+		struct _TestCallbacks
+		{
+			static bool test1(float number)
+			{
+				return false;
+			}
+		};
+		g_playerASI->AddCallback(L"test1", _TestCallbacks::test1);
+	}
 
 	g_flashPlayer->LoadMovie(movie_path);
 
@@ -269,14 +283,14 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	}
 
 	//---------------------------------------------------------------------
-	// Function call (FlashDXPlayerBind)
+	// Function call (ASInterface)
 	//---------------------------------------------------------------------
 	{
-		bool boolResult = g_playerBind.CallFunction(L"test", true);
-		float numberResult = g_playerBind.CallFunction(L"test1", 22);
-		std::wstring stringResult = g_playerBind.CallFunction(L"test2", 123.456);
-		ASValue::Array arrayResult = g_playerBind.CallFunction(L"test3", stringResult);
-		ASValue::Object objectResult = g_playerBind.CallFunction(L"test4", arrayResult);
+		bool boolResult = g_playerASI->Call(L"test", true);
+		float numberResult = g_playerASI->Call(L"test1", 22);
+		std::wstring stringResult = g_playerASI->Call(L"test2", 123.456);
+		ASValue::Array arrayResult = g_playerASI->Call(L"test3", stringResult);
+		ASValue::Object objectResult = g_playerASI->Call(L"test4", arrayResult);
 
 		OutputDebugString(L"");
 	}
@@ -313,7 +327,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //---------------------------------------------------------------------
 void ExitInstance()
 {
-	g_playerBind.SetPlayer(NULL);
+	delete g_playerASI;
 
 	g_flashDX->DestroyPlayer(g_flashPlayer);
 

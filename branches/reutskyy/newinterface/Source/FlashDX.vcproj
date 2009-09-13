@@ -440,7 +440,7 @@
 			Name="Interface"
 			>
 			<File
-				RelativePath="..\Include\FlashDXPlayerBind.h"
+				RelativePath="..\Include\ASInterface.h"
 				>
 			</File>
 			<File

@@ -26,7 +26,6 @@
 
 
 #include <string>
-#include <sstream>
 #include <vector>
 #include <map>
 
@@ -59,19 +58,35 @@ private:
 	struct _Data; _Data &data;
 };
 
-struct FlashDXPlayerBind : IFlashDXEventHandler
+struct ASCallback
 {
-	inline FlashDXPlayerBind();
-	inline ~FlashDXPlayerBind();
-	inline void SetPlayer(IFlashDXPlayer *pPlayer);
-	inline IFlashDXPlayer* GetPlayer() const;
+	inline ASCallback();
+	template<typename _Function> inline ASCallback(const _Function &value);
+	inline ASCallback(const ASCallback &value);
+	inline ~ASCallback();
+	inline ASCallback& operator = (const ASCallback &value);
 
-	inline ASValue CallFunction(const std::wstring &functionName,
+	HRESULT Call(const ASValue::Array &arguments, ASValue &returnValue) const;
+
+private:
+	struct _Data; _Data &data;
+};
+
+struct ASInterface : IFlashDXEventHandler
+{
+	inline ASInterface(IFlashDXPlayer *pPlayer);
+	inline ~ASInterface();
+
+	inline ASValue Call(const std::wstring &functionName,
 		   const ASValue &arg0 = ASValue(), const ASValue &arg1 = ASValue(), const ASValue &arg2 = ASValue(), const ASValue &arg3 = ASValue(), const ASValue &arg4 = ASValue(),
 		   const ASValue &arg5 = ASValue(), const ASValue &arg6 = ASValue(), const ASValue &arg7 = ASValue(), const ASValue &arg8 = ASValue(), const ASValue &arg9 = ASValue());
 
+	inline void AddCallback(const std::wstring &functionName, const ASCallback &callback);
+
 private:
-	IFlashDXPlayer *m_pPlayer;
+	IFlashDXPlayer &m_player;
+	typedef std::map<std::wstring, ASCallback> Callbacks;
+	Callbacks m_callbacks;
 	HRESULT FlashCall(const wchar_t* request);
 	HRESULT FSCommand(const wchar_t* command, const wchar_t* args);
 };
@@ -84,6 +99,8 @@ private:
 
 
 // Inlines -------------------------------------------------------------------------------------------------------
+
+#include <sstream>
 
 // ASValue::_Data
 
@@ -387,31 +404,55 @@ inline void ASValue::FromXML(const std::wstring &xml)
 	}
 }
 
-// FlashDXPlayerBind
+// ASCallback::_Data
 
-inline FlashDXPlayerBind::FlashDXPlayerBind()
+struct ASCallback::_Data
+{
+};
+
+// ASCallback
+
+inline ASCallback::ASCallback()
 :
-	m_pPlayer(NULL)
+	data(* new _Data)
 {}
-
-inline FlashDXPlayerBind::~FlashDXPlayerBind()
+template<typename _Function>
+inline ASCallback::ASCallback(const _Function &value)
+:
+	data(* new _Data)
+{}
+inline ASCallback::ASCallback(const ASCallback &value)
+:
+	data(* new _Data)
+{}
+inline ASCallback::~ASCallback()
 {
-	if (m_pPlayer != NULL) m_pPlayer->RemoveEventHandler(this);
+	delete &data;
+}
+inline ASCallback& ASCallback::operator = (const ASCallback &value)
+{
+	return *this;
+}
+inline HRESULT ASCallback::Call(const ASValue::Array &arguments, ASValue &returnValue) const
+{
+	return E_NOTIMPL;
 }
 
-inline void FlashDXPlayerBind::SetPlayer(IFlashDXPlayer *pPlayer)
+// ASInterface
+
+inline ASInterface::ASInterface(IFlashDXPlayer *pPlayer)
+:
+	m_player(*pPlayer)
 {
-	if (m_pPlayer != NULL) m_pPlayer->RemoveEventHandler(this);
-	m_pPlayer = pPlayer;
-	if (m_pPlayer != NULL) m_pPlayer->AddEventHandler(this);
+	m_player.AddEventHandler(this);
 }
 
-inline IFlashDXPlayer* FlashDXPlayerBind::GetPlayer() const
+inline ASInterface::~ASInterface()
 {
-	return m_pPlayer;
+	m_player.RemoveEventHandler(this);
 }
 
-inline ASValue FlashDXPlayerBind::CallFunction(const std::wstring &functionName, const ASValue &arg0, const ASValue &arg1, const ASValue &arg2, const ASValue &arg3, const ASValue &arg4, const ASValue &arg5, const ASValue &arg6, const ASValue &arg7, const ASValue &arg8, const ASValue &arg9)
+inline ASValue ASInterface::Call(const std::wstring &functionName, const ASValue &arg0, const ASValue &arg1, const ASValue &arg2, const ASValue &arg3, const ASValue &arg4, const ASValue &arg5, const ASValue &arg6, const ASValue &arg7, const ASValue &arg8, const ASValue &arg9)
 {
 	struct _Args { static void ToXML(std::wstring &arguments, const ASValue &arg0 = ASValue(), const ASValue &arg1 = ASValue(), const ASValue &arg2 = ASValue(), const ASValue &arg3 = ASValue(), const ASValue &arg4 = ASValue(), const ASValue &arg5 = ASValue(), const ASValue &arg6 = ASValue(), const ASValue &arg7 = ASValue(), const ASValue &arg8 = ASValue(), const ASValue &arg9 = ASValue())
 	{
@@ -428,7 +469,7 @@ inline ASValue FlashDXPlayerBind::CallFunction(const std::wstring &functionName,
 	else arguments = L"";
 
 	std::wstring request = L"<invoke name='" + functionName + L"' returntype='xml'>" + arguments + L"</invoke>";
-	const wchar_t* result = m_pPlayer->CallFunction(request.c_str());
+	const wchar_t* result = m_player.CallFunction(request.c_str());
 
 	if (result == NULL) return ASValue();
 
@@ -437,12 +478,78 @@ inline ASValue FlashDXPlayerBind::CallFunction(const std::wstring &functionName,
 	return value;
 }
 
-HRESULT FlashDXPlayerBind::FlashCall(const wchar_t* request)
+inline void ASInterface::AddCallback(const std::wstring &functionName, const ASCallback &callback)
 {
+	m_callbacks[functionName] = callback;
+}
+
+HRESULT ASInterface::FlashCall(const wchar_t* request)
+{
+	struct _Args { static void split(const std::wstring &xml, std::vector<std::wstring> &args)
+	{
+		const wchar_t* argStart = xml.c_str();
+		const wchar_t* argEnd = xml.c_str();
+		int nesting = 0;
+		bool closetag = false;
+		while (argEnd - xml.c_str() < (int)xml.length())
+		{
+			if (wcsncmp(argEnd, L"</arguments>", 12) == 0) break;
+			else
+			if (wcsncmp(argEnd, L"<arguments>", 11) == 0)
+			{
+				nesting = 0;
+				argStart += 11;
+				argEnd += 10;
+			}
+			else
+			if (wcsncmp(argEnd, L"</", 2) == 0) closetag = true;
+			else
+			if (wcsncmp(argEnd, L"<", 1) == 0) ++nesting;
+			else
+			if (wcsncmp(argEnd, L"/>", 2) == 0) closetag = true;
+			else
+			if (wcsncmp(argEnd, L">", 1) == 0)
+			{
+				if (closetag)
+				{
+					closetag = false;
+					--nesting;
+					if (nesting == 0)
+					{
+						size_t start = argStart - xml.c_str();
+						size_t size = argEnd - argStart + 1;
+						args.push_back(xml.substr(start, size));
+						argStart = argEnd + 1;
+					}
+				}
+			}
+			++argEnd;
+		}
+	}};
+
+	std::wstring xml = request;
+	std::wstring functionName = xml.substr(14, xml.find(L">") - 14 - 18);
+	Callbacks::iterator itCallback = m_callbacks.find(functionName);
+	if (itCallback != m_callbacks.end())
+	{
+		std::vector<std::wstring> args;
+		_Args::split(xml.substr(xml.find(L">") + 1), args);
+		ASValue::Array arguments;
+		for (unsigned int i = 0, s = args.size(); i < s; ++i)
+		{
+			ASValue arg; arg.FromXML(args[i]);
+			arguments.push_back(arg);
+		}
+		ASValue returnValue;
+		HRESULT result = itCallback->second.Call(arguments, returnValue);
+		if (result == NOERROR) m_player.SetReturnValue(returnValue.ToXML().c_str());
+		return result;
+	}
+
 	return E_NOTIMPL;
 }
 
-HRESULT FlashDXPlayerBind::FSCommand(const wchar_t* command, const wchar_t* args)
+HRESULT ASInterface::FSCommand(const wchar_t* command, const wchar_t* args)
 {
 	return E_NOTIMPL;
 }

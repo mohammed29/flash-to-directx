@@ -614,6 +614,28 @@ void CFlashDXPlayer::EnableSound(bool enable)
 }
 
 //---------------------------------------------------------------------
+const wchar_t* CFlashDXPlayer::CallFunction(const wchar_t* request)
+{
+	BSTR response = NULL;
+	HRESULT hr = m_flashInterface->raw_CallFunction(_bstr_t(request), &response);
+
+	if (response)
+	{
+		m_tempStorage = response;
+		return m_tempStorage.c_str();
+	}
+
+	return NULL;
+}
+
+//---------------------------------------------------------------------
+void CFlashDXPlayer::SetReturnValue(const wchar_t* returnValue)
+{
+	m_flashInterface->SetReturnValue(returnValue);
+}
+
+/*
+//---------------------------------------------------------------------
 void CFlashDXPlayer::BeginFunctionCall(const wchar_t* functionName)
 {
 	m_invokeString.clear();
@@ -731,6 +753,8 @@ const wchar_t* CFlashDXPlayer::CallFunction(const wchar_t* functionName,
 
 	return EndFunctionCall();
 }
+*/
+
 
 //---------------------------------------------------------------------
 void CFlashDXPlayer::AddEventHandler(struct IFlashDXEventHandler* pHandler)
@@ -761,10 +785,23 @@ unsigned int CFlashDXPlayer::GetNumEventHandlers() const
 }
 
 //---------------------------------------------------------------------
-void CFlashDXPlayer::Invoke(const wchar_t* invokeString)
+HRESULT CFlashDXPlayer::FlashCall(const wchar_t* request)
 {
-	m_invokeString.clear();
-	PushArgumentString(L"cool");
+	for (unsigned int i = 0; i < m_eventHandlers.size(); ++i)
+	{
+		HRESULT result = m_eventHandlers[i]->FlashCall(request);
+		if (result != E_NOTIMPL) return result;
+	}
+	return E_NOTIMPL;
+}
 
-	m_flashInterface->SetReturnValue(_bstr_t(m_invokeString.c_str()));
+//---------------------------------------------------------------------
+HRESULT CFlashDXPlayer::FSCommand(const wchar_t* command, const wchar_t* args)
+{
+	for (unsigned int i = 0; i < m_eventHandlers.size(); ++i)
+	{
+		HRESULT result = m_eventHandlers[i]->FSCommand(command, args);
+		if (result != E_NOTIMPL) return result;
+	}
+	return E_NOTIMPL;
 }

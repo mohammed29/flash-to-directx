@@ -24,17 +24,16 @@
 
 #include "IFlashDX.h"
 
-
 #include <string>
 #include <vector>
 #include <map>
 
 struct ASValue
 {
-	typedef bool							Boolean;
-	typedef float							Number;
-	typedef std::wstring					String;
-	typedef std::vector<ASValue>			Array;
+	typedef bool Boolean;
+	typedef float Number;
+	typedef std::wstring String;
+	typedef std::vector<ASValue> Array;
 	typedef std::map<std::wstring, ASValue>	Object;
 
 	inline ASValue();
@@ -513,8 +512,7 @@ HRESULT ASInterface::FlashCall(const wchar_t* request)
 				if (closetag)
 				{
 					closetag = false;
-					--nesting;
-					if (nesting == 0)
+					if (--nesting == 0)
 					{
 						size_t start = argStart - xml.c_str();
 						size_t size = argEnd - argStart + 1;

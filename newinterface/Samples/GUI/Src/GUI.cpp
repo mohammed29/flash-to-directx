@@ -41,6 +41,26 @@ TCHAR szWindowClass[max_loadstring];			// the main window class name
 IFlashDX*			g_flashDX = NULL;
 IFlashDXPlayer*		g_flashPlayer = NULL;
 
+struct EventHandler : IFlashDXEventHandler
+{
+	HRESULT FlashCall(const wchar_t* request)
+	{
+		if (wcsstr(request, L"<invoke name=\"test\"") != NULL)
+		{
+			g_flashPlayer->SetReturnValue(L"<false/>");
+			return NOERROR;
+		}
+		return E_NOTIMPL;
+	}
+	HRESULT FSCommand(const wchar_t* command, const wchar_t* args)
+	{
+		return E_NOTIMPL;
+	}
+};
+EventHandler g_eventHandler;
+
+FlashDXPlayerBind g_playerBind;
+
 IDirect3D9*			g_direct3D = NULL;
 IDirect3DDevice9*	g_device = NULL;
 D3DPRESENT_PARAMETERS g_params;
@@ -223,32 +243,65 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		return FALSE;
 	}
 
+	g_flashPlayer->AddEventHandler(&g_eventHandler);
+
+	g_playerBind.SetPlayer(g_flashPlayer);
+
 	g_flashPlayer->LoadMovie(movie_path);
 
 	g_flashPlayer->SetTransparencyMode(use_transparency ? IFlashDXPlayer::TMODE_TRANSPARENT : IFlashDXPlayer::TMODE_OPAQUE);
 	g_flashPlayer->SetBackgroundColor(0xFFFFFFFF);
 
+	//---------------------------------------------------------------------
 	// Function call
-	g_flashPlayer->BeginFunctionCall(L"testFunctionCall");
-	g_flashPlayer->PushArgumentString("String");
-	g_flashPlayer->PushArgumentString(L"WString");
-	g_flashPlayer->PushArgumentNumber(10.0f);
-	g_flashPlayer->PushArgumentBool(true);
+	//---------------------------------------------------------------------
+	{
+		const wchar_t* result = g_flashPlayer->CallFunction
+		(
+			L"<invoke name='test' returntype='xml'>"
+				L"<arguments>"
+					L"<true/>"
+				L"</arguments>"
+			L"</invoke>"
+		);
 
-	std::wstring result;
-	if (const wchar_t* pResult = g_flashPlayer->EndFunctionCall())
-		result = pResult;
+		OutputDebugString(result);
+	}
 
-	result += L"\n";
-	OutputDebugString(result.c_str());
+	//---------------------------------------------------------------------
+	// Function call (FlashDXPlayerBind)
+	//---------------------------------------------------------------------
+	{
+		bool boolResult = g_playerBind.CallFunction(L"test", true);
+		float numberResult = g_playerBind.CallFunction(L"test1", 22);
+		std::wstring stringResult = g_playerBind.CallFunction(L"test2", 123.456);
+		ASValue::Array arrayResult = g_playerBind.CallFunction(L"test3", stringResult);
+		ASValue::Object objectResult = g_playerBind.CallFunction(L"test4", arrayResult);
 
-	// Easy way of function call
-	std::wstring result2;
-	if (const wchar_t* pResult = g_flashPlayer->CallFunction(L"testFunctionCall", "String", L"WString", 10, true))
-		result2 = pResult;
+		OutputDebugString(L"");
+	}
 
-	result2 += L"\n";
-	OutputDebugString(result2.c_str());
+	//// Function call
+	//g_flashPlayer->BeginFunctionCall(L"testFunctionCall");
+	//g_flashPlayer->PushArgumentString("String");
+	//g_flashPlayer->PushArgumentString(L"WString");
+	//g_flashPlayer->PushArgumentNumber(10.0f);
+	//g_flashPlayer->PushArgumentBool(true);
+
+	//std::wstring result;
+	//if (const wchar_t* pResult = g_flashPlayer->EndFunctionCall())
+	//	result = pResult;
+
+	//result += L"\n";
+	//OutputDebugString(result.c_str());
+
+	//// Easy way of function call
+	//std::wstring result2;
+	//if (const wchar_t* pResult = g_flashPlayer->CallFunction(L"testFunctionCall", "String", L"WString", 10, true))
+	//	result2 = pResult;
+
+	//result2 += L"\n";
+	//OutputDebugString(result2.c_str());
 
 	// Show window
 	ShowWindow(hWnd, nCmdShow);
@@ -260,6 +313,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //---------------------------------------------------------------------
 void ExitInstance()
 {
+	g_playerBind.SetPlayer(NULL);
+
 	g_flashDX->DestroyPlayer(g_flashPlayer);
 
 	for (int i = 0; i < num_textures_in_rotation; ++i)

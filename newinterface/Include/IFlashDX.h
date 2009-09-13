@@ -368,6 +368,23 @@ struct IFlashDXPlayer
 	virtual void EnableSound(bool enable) = 0;
 
 	//---------------------------------------------------------------------
+	/// @brief				
+	/// @param 
+	virtual const wchar_t* CallFunction(const wchar_t* request) = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				
+	/// @param 
+	virtual void SetReturnValue(const wchar_t* returnValue) = 0;
+
+
+
+
+
+
+
+/*
+	//---------------------------------------------------------------------
 	/// @brief				Begins passing of the arguments to specified function.
 	/// @param functionName	Function to call.
 	/// @sa					PushArgument*(), CallFunction()
@@ -470,6 +487,9 @@ struct IFlashDXPlayer
 		Arg arg5 = Arg(), Arg arg6 = Arg(), Arg arg7 = Arg(), Arg arg8 = Arg(), Arg arg9 = Arg()
 		) = 0;
 
+
+*/
+
 	//---------------------------------------------------------------------
 	/// @brief				Adds FSCommand() event handler.
 	/// @param pHandler		Handler interface.
@@ -498,10 +518,6 @@ struct IFlashDXPlayer
 //---------------------------------------------------------------------
 struct IFlashDXEventHandler
 {
-    enum EEventType
-    {
-        EVENT_FUNCTION_CALL = 0,
-    };
-
-
+	virtual HRESULT FlashCall(const wchar_t* request) = 0;
+	virtual HRESULT FSCommand(const wchar_t* command, const wchar_t* args) = 0;
 };

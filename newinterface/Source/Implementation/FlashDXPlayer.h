@@ -46,7 +46,8 @@ public:
 
 	//---------------------------------------------------------------------
 	/// Invokes C++ code from Flash.
-	void Invoke(const wchar_t* invokeString);
+	HRESULT FlashCall(const wchar_t* request);
+	HRESULT FSCommand(const wchar_t* command, const wchar_t* args);
 
 	//---------------------------------------------------------------------
 	// IFlashDXPlayer implementations.
@@ -92,6 +93,11 @@ public:
 	virtual void SendKey(bool pressed, int virtualKey, int extended);
 	virtual void SendChar(int character, int extended);
 	virtual void EnableSound(bool enable);
+
+	virtual const wchar_t* CallFunction(const wchar_t* request);
+	virtual void SetReturnValue(const wchar_t* returnValue);
+
+/*
 	virtual void BeginFunctionCall(const wchar_t* functionName);
 	virtual const wchar_t* EndFunctionCall();
 	virtual void BeginReturn();
@@ -104,6 +110,8 @@ public:
 		Arg arg0 = Arg(), Arg arg1 = Arg(), Arg arg2 = Arg(), Arg arg3 = Arg(), Arg arg4 = Arg(),
 		Arg arg5 = Arg(), Arg arg6 = Arg(), Arg arg7 = Arg(), Arg arg8 = Arg(), Arg arg9 = Arg()
 		);
+*/
+
 	virtual void AddEventHandler(struct IFlashDXEventHandler* pHandler);
 	virtual void RemoveEventHandler(struct IFlashDXEventHandler* pHandler);
 	virtual struct IFlashDXEventHandler* GetEventHandlerByIndex(unsigned int index);

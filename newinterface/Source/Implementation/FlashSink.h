@@ -68,15 +68,15 @@ public:
 		WORD wFlags, ::DISPPARAMS __RPC_FAR *pDispParams, VARIANT __RPC_FAR *pVarResult,
 		::EXCEPINFO __RPC_FAR *pExcepInfo, UINT __RPC_FAR *puArgErr);
 
-	//---------------------------------------------------------------------
-	HRESULT OnReadyStateChange(long newState);
-	
-	//---------------------------------------------------------------------
-	HRESULT OnProgress(long percentDone);
+	////---------------------------------------------------------------------
+	//HRESULT OnReadyStateChange(long newState);
+	//
+	////---------------------------------------------------------------------
+	//HRESULT OnProgress(long percentDone);
 
-	//---------------------------------------------------------------------
-	HRESULT FSCommand(_bstr_t command, _bstr_t args);
+	////---------------------------------------------------------------------
+	//HRESULT FSCommand(_bstr_t command, _bstr_t args);
 
-	//---------------------------------------------------------------------
-	HRESULT FlashCall(_bstr_t request);
+	////---------------------------------------------------------------------
+	//HRESULT FlashCall(_bstr_t request);
 };

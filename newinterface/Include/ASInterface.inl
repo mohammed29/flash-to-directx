@@ -788,7 +788,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 			}
 			ASValue returnValue;
 			HRESULT result = itCallback->second.Call(arguments, returnValue);
-			if (result == NOERROR) player.SetReturnValue(returnValue.ToXML().c_str());
+			if (result == NOERROR && !returnValue.IsEmpty()) player.SetReturnValue(returnValue.ToXML().c_str());
 			return result;
 		}
 

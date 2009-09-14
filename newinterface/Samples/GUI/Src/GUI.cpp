@@ -251,9 +251,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	// Function callbacks
 	//---------------------------------------------------------------------
 	{
-		struct _TestCallbacks
+		struct TestCallbacks
 		{
-			static bool test1(bool yes)
+			static bool test1(bool yes, ASValue::Array arr)
 			{
 				return false;
 			}
@@ -262,10 +262,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 				return 0;
 			}
 		};
-		g_playerASI->AddCallback(L"test1", &_TestCallbacks::test1);
 
-		_TestCallbacks s_testCallbacks;
-		g_playerASI->AddCallback(L"test2", s_testCallbacks, &_TestCallbacks::test2);
+		TestCallbacks s_testCallbacks;
+		g_playerASI->AddCallback(L"test1", &TestCallbacks::test1);
+		g_playerASI->AddCallback(L"test2", s_testCallbacks, &TestCallbacks::test2);
 	}
 
 	g_flashPlayer->LoadMovie(movie_path);

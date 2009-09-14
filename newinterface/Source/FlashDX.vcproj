@@ -444,6 +444,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Include\ASInterface.inl"
+				>
+			</File>
+			<File
 				RelativePath="..\Include\IFlashDX.h"
 				>
 			</File>

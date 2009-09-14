@@ -294,7 +294,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	//---------------------------------------------------------------------
 	{
 		bool boolResult = g_playerASI->Call(L"test", true);
-		float numberResult = g_playerASI->Call(L"test1", 22);
+		int numberResult = g_playerASI->Call(L"test1", 22);
 		std::wstring stringResult = g_playerASI->Call(L"test2", 123.456);
 		ASValue::Array arrayResult = g_playerASI->Call(L"test3", stringResult);
 		ASValue::Object objectResult = g_playerASI->Call(L"test4", arrayResult);

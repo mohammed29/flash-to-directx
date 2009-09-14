@@ -385,15 +385,6 @@ struct ASInterface::_Data : IFlashDXEventHandler
 {
 	struct Callback
 	{
-		struct BaseCaller
-		{
-			virtual size_t ArgNum() = 0;
-			virtual HRESULT Call(const ASValue::Array &arguments, ASValue &returnValue) = 0;
-			virtual BaseCaller& Clone() = 0;
-		};
-
-		BaseCaller &caller;
-
 		template<typename _Type> struct CallHlp;
 
 		//
@@ -664,20 +655,29 @@ struct ASInterface::_Data : IFlashDXEventHandler
 			static inline void Call(ASValue &r, _O &o, _M m, const ASValue::Array &a) { Ret<_R>::Call(r, o, m, a); }
 		};
 
+		struct BaseCaller
+		{
+			virtual size_t ArgNum() = 0;
+			virtual void Call(const ASValue::Array &arguments, ASValue &returnValue) = 0;
+			virtual BaseCaller& Clone() = 0;
+		};
+
 		template<typename _F> struct Caller : BaseCaller
 		{
 			_F fn; inline Caller(_F _fn) : fn(_fn) {}
 			size_t ArgNum() { return CallHlp<_F>::argNum; }
-			HRESULT Call(const ASValue::Array &a, ASValue &r) { CallHlp<_F>::Call(r, fn, a); return NOERROR; }
+			void Call(const ASValue::Array &a, ASValue &r) { CallHlp<_F>::Call(r, fn, a); }
 			Caller& Clone() { return * new Caller(fn); }
 		};
 		template<typename _R, typename _O> struct Caller<_R _O::*> : BaseCaller
 		{
 			typedef _R _O::* _M; _O &ob; _M mt; inline Caller(_O &_ob, _M _mt) : ob(_ob), mt(_mt) {}
 			size_t ArgNum() { return CallHlp<_M>::argNum; }
-			HRESULT Call(const ASValue::Array &a, ASValue &r) { CallHlp<_M>::Call(r, ob, mt, a); return NOERROR; }
+			void Call(const ASValue::Array &a, ASValue &r) { CallHlp<_M>::Call(r, ob, mt, a); }
 			Caller& Clone() { return * new Caller(ob, mt); }
 		};
+
+		BaseCaller &caller;
 
 		inline Callback()
 		:
@@ -710,7 +710,8 @@ struct ASInterface::_Data : IFlashDXEventHandler
 			if (&caller != NULL)
 			{
 				if (caller.ArgNum() > arguments.size()) return E_INVALIDARG;
-				return caller.Call(arguments, returnValue);
+				caller.Call(arguments, returnValue);
+				return NOERROR;
 			}
 			return E_NOTIMPL;
 		}

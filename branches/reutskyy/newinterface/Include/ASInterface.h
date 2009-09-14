@@ -28,8 +28,12 @@
 #include <vector>
 #include <map>
 
+//---------------------------------------------------------------------
+/// Action Script value. To exchange data with AS.
+//---------------------------------------------------------------------
 struct ASValue
 {
+	// AS data types
 	typedef bool Boolean;
 	typedef float Number;
 	typedef std::wstring String;
@@ -54,40 +58,36 @@ struct ASValue
 	inline void FromXML(const std::wstring &xml);
 
 private:
-	struct _Data; _Data &data;
+	struct _Data; _Data &m_data;
 };
 
-struct ASCallback
-{
-	inline ASCallback();
-	template<typename _Function> inline ASCallback(const _Function &value);
-	inline ASCallback(const ASCallback &value);
-	inline ~ASCallback();
-	inline ASCallback& operator = (const ASCallback &value);
-
-	HRESULT Call(const ASValue::Array &arguments, ASValue &returnValue) const;
-
-private:
-	struct _Data; _Data &data;
-};
-
-struct ASInterface : IFlashDXEventHandler
+//---------------------------------------------------------------------
+/// Action Script interface.
+/// Allows to call AS function and register callbacks called from AS.
+//---------------------------------------------------------------------
+struct ASInterface
 {
 	inline ASInterface(IFlashDXPlayer *pPlayer);
 	inline ~ASInterface();
 
+	// Call an AS function with up to 10 arguments
 	inline ASValue Call(const std::wstring &functionName,
-		   const ASValue &arg0 = ASValue(), const ASValue &arg1 = ASValue(), const ASValue &arg2 = ASValue(), const ASValue &arg3 = ASValue(), const ASValue &arg4 = ASValue(),
-		   const ASValue &arg5 = ASValue(), const ASValue &arg6 = ASValue(), const ASValue &arg7 = ASValue(), const ASValue &arg8 = ASValue(), const ASValue &arg9 = ASValue());
+						const ASValue &arg0 = ASValue(), const ASValue &arg1 = ASValue(),
+						const ASValue &arg2 = ASValue(), const ASValue &arg3 = ASValue(),
+						const ASValue &arg4 = ASValue(), const ASValue &arg5 = ASValue(),
+						const ASValue &arg6 = ASValue(), const ASValue &arg7 = ASValue(),
+						const ASValue &arg8 = ASValue(), const ASValue &arg9 = ASValue());
 
-	inline void AddCallback(const std::wstring &functionName, const ASCallback &callback);
+	// Register a function as an AS callback
+	template<typename _Function>
+	inline void AddCallback(const std::wstring &functionName, _Function function);
+
+	// Register a method as an AS callback
+	template<typename _Object, typename _Method>
+	inline void AddCallback(const std::wstring &functionName, _Object &object, _Method method);
 
 private:
-	IFlashDXPlayer &m_player;
-	typedef std::map<std::wstring, ASCallback> Callbacks;
-	Callbacks m_callbacks;
-	HRESULT FlashCall(const wchar_t* request);
-	HRESULT FSCommand(const wchar_t* command, const wchar_t* args);
+	struct _Data; _Data &m_data;
 };
 
 
@@ -199,7 +199,7 @@ struct ASValue::_Data
 	}
 	inline _Data& operator = (const ASValue &value)
 	{
-		Construct(value.data.type, &value.data.data);
+		Construct(value.m_data.type, &value.m_data.data);
 		return *this;
 	}
 
@@ -234,60 +234,60 @@ struct ASValue::_Data
 
 inline ASValue::ASValue()
 :
-	data(* new _Data)
+	m_data(* new _Data)
 {}
 inline ASValue::ASValue(const ASValue &value)
 :
-	data(* new _Data)
+	m_data(* new _Data)
 {
-	data = value;
+	m_data = value;
 }
 template<typename _Type>
 inline ASValue::ASValue(const _Type &value)
 :
-	data(* new _Data)
+	m_data(* new _Data)
 {
-	data = value;
+	m_data = value;
 }
 template<typename _Type>
 inline ASValue& ASValue::operator = (const _Type &value)
 {
-	data = value;
+	m_data = value;
 	return *this;
 }
 template<typename _Type>
 inline ASValue::operator _Type() const
 {
-	return data;
+	return m_data;
 }
 inline ASValue::~ASValue()
 {
-	delete &data;
+	delete &m_data;
 }
 
 inline bool ASValue::IsEmpty() const
 {
-	return data.type == -1;
+	return m_data.type == -1;
 }
 inline bool ASValue::IsBoolean() const
 {
-	return data.type == 0;
+	return m_data.type == 0;
 }
 inline bool ASValue::IsNumber() const
 {
-	return data.type == 1;
+	return m_data.type == 1;
 }
 inline bool ASValue::IsString() const
 {
-	return data.type == 2;
+	return m_data.type == 2;
 }
 inline bool ASValue::IsArray() const
 {
-	return data.type == 3;
+	return m_data.type == 3;
 }
 inline bool ASValue::IsObject() const
 {
-	return data.type == 4;
+	return m_data.type == 4;
 }
 
 inline std::wstring ASValue::ToXML() const
@@ -318,13 +318,13 @@ inline std::wstring ASValue::ToXML() const
 
 	std::wstringstream s;
 
-	switch (data.type)
+	switch (m_data.type)
 	{
-	case 0: s << ((Boolean&)data.data ? L"<true/>" : L"<false/>"); break;
-	case 1: s << L"<number>" << (Number&)data.data << L"</number>"; break;
-	case 2: s << L"<string>" << (String&)data.data << L"</string>"; break;
-	case 3: s << _Array::ToXML((Array&)data.data); break;
-	case 4: s << _Object::ToXML((Object&)data.data); break;
+	case 0: s << ((Boolean&)m_data.data ? L"<true/>" : L"<false/>"); break;
+	case 1: s << L"<number>" << (Number&)m_data.data << L"</number>"; break;
+	case 2: s << L"<string>" << (String&)m_data.data << L"</string>"; break;
+	case 3: s << _Array::ToXML((Array&)m_data.data); break;
+	case 4: s << _Object::ToXML((Object&)m_data.data); break;
 	default: s << L"<null/>"; break;
 	}
 
@@ -353,21 +353,21 @@ inline void ASValue::FromXML(const std::wstring &xml)
 		length = propOpen.length() + content.length() + 11;
 	}};
 
-	if (xml.find(L"<true/>") == 0) data = true;
+	if (xml.find(L"<true/>") == 0) m_data = true;
 	else
-	if (xml.find(L"<false/>") == 0) data = false;
+	if (xml.find(L"<false/>") == 0) m_data = false;
 	else
 	if (xml.find(L"<number>") == 0)
 	{
 		std::wstringstream s(xml.substr(8));
 		Number value; s >> value;
-		data = value;
+		m_data = value;
 	}
 	else
 	if (xml.find(L"<string>") == 0)
 	{
 		String value = xml.substr(8, xml.rfind(L"</string>") - 8);
-		data = value;
+		m_data = value;
 	}
 	else
 	if (xml.find(L"<array>") == 0)
@@ -384,7 +384,7 @@ inline void ASValue::FromXML(const std::wstring &xml)
 			value[propIndex] = prop;
 			propsXML = propsXML.substr(propLength);
 		}
-		data = value;
+		m_data = value;
 	}
 	else
 	if (xml.find(L"<object>") == 0)
@@ -399,56 +399,225 @@ inline void ASValue::FromXML(const std::wstring &xml)
 			value[propName] = prop;
 			propsXML = propsXML.substr(propLength);
 		}
-		data = value;
+		m_data = value;
 	}
 }
 
-// ASCallback::_Data
+// ASInterface::_Data
 
-struct ASCallback::_Data
+struct ASInterface::_Data : IFlashDXEventHandler
 {
+	struct Callback
+	{
+		struct BaseCaller
+		{
+			virtual size_t ArgNum() = 0;
+			virtual HRESULT Call(const ASValue::Array &arguments, ASValue &returnValue) = 0;
+			virtual BaseCaller& Clone() = 0;
+		};
+
+		BaseCaller &caller;
+
+		template<typename _Type> struct CallHlp;
+
+		//
+		template<typename _R>
+		struct CallHlp<_R (*)()> {
+			typedef _R (*_F)();
+			static const size_t argNum = 0;
+			template<typename _R> struct Ret { static void Call(ASValue &r, _F f, const ASValue::Array &a) {
+				r = f();
+			}};
+			template<> struct Ret<void> { static void Call(ASValue &r, _F f, const ASValue::Array &a) {
+				f();
+			}};
+			static void Call(ASValue &r, _F f, const ASValue::Array &a) { Ret<_R>::Call(r, f, a); }
+		};
+		template<typename _R, typename _A0>
+		struct CallHlp<_R (*)(_A0)> {
+			typedef _R (*_F)(_A0);
+			static const size_t argNum = 1;
+			template<typename _R> struct Ret { static void Call(ASValue &r, _F f, const ASValue::Array &a) {
+				r = f(a[0]);
+			}};
+			template<> struct Ret<void> { static void Call(ASValue &r, _F f, const ASValue::Array &a) {
+				f(a[0]);
+			}};
+			static void Call(ASValue &r, _F f, const ASValue::Array &a) { Ret<_R>::Call(r, f, a); }
+		};
+
+		//
+		template<typename _R, typename _O>
+		struct CallHlp<_R (_O::*)()> {
+			typedef _R (_O::*_M)();
+			static const size_t argNum = 0;
+			template<typename _R> struct Ret { static void Call(ASValue &r, _O &o, _M m, const ASValue::Array &a) {
+				r = (o.*m)();
+			}};
+			template<> struct Ret<void> { static void Call(ASValue &r, _O &o, _M m, const ASValue::Array &a) {
+				(o.*m)();
+			}};
+			static void Call(ASValue &r, _O &o, _M m, const ASValue::Array &a) { Ret<_R>::Call(r, o, m, a); }
+		};
+		template<typename _R, typename _O, typename _A0>
+		struct CallHlp<_R (_O::*)(_A0)> {
+			typedef _R (_O::*_M)(_A0);
+			static const size_t argNum = 0;
+			template<typename _R> struct Ret { static void Call(ASValue &r, _O &o, _M m, const ASValue::Array &a) {
+				r = (o.*m)(a[0]);
+			}};
+			template<> struct Ret<void> { static void Call(ASValue &r, _O &o, _M m, const ASValue::Array &a) {
+				(o.*m)(a[0]);
+			}};
+			static void Call(ASValue &r, _O &o, _M m, const ASValue::Array &a) { Ret<_R>::Call(r, o, m, a); }
+		};
+
+		template<typename _F> struct Caller : BaseCaller
+		{
+			_F fn; inline Caller(_F _fn) : fn(_fn) {}
+			size_t ArgNum() { return CallHlp<_F>::argNum; }
+			HRESULT Call(const ASValue::Array &a, ASValue &r) { CallHlp<_F>::Call(r, fn, a); return NOERROR; }
+			Caller& Clone() { return * new Caller(fn); }
+		};
+		template<typename _R, typename _O> struct Caller<_R _O::*> : BaseCaller
+		{
+			typedef _R _O::* _M; _O &ob; _M mt; inline Caller(_O &_ob, _M _mt) : ob(_ob), mt(_mt) {}
+			size_t ArgNum() { return CallHlp<_M>::argNum; }
+			HRESULT Call(const ASValue::Array &a, ASValue &r) { CallHlp<_M>::Call(r, ob, mt, a); return NOERROR; }
+			Caller& Clone() { return * new Caller(ob, mt); }
+		};
+
+		inline Callback()
+		:
+			caller(*(BaseCaller*)0)
+		{}
+		template<typename _Function> inline Callback(_Function function)
+		:
+			caller(* new Caller<_Function>(function))
+		{}
+		template<typename _Object, typename _Method> inline Callback(_Object &object, _Method method)
+		:
+			caller(* new Caller<_Method>(object, method))
+		{}
+		inline Callback(const Callback &value)
+		:
+			caller(&value.caller ? value.caller.Clone() : *(BaseCaller*)0)
+		{}
+		inline ~Callback()
+		{
+			delete &caller;
+		}
+		inline Callback& operator = (const Callback &value)
+		{
+			this->~Callback(); new (this) Callback(value);
+			return *this;
+		}
+
+		HRESULT Call(const ASValue::Array &arguments, ASValue &returnValue) const
+		{
+			if (&caller != NULL)
+			{
+				if (caller.ArgNum() > arguments.size()) return E_INVALIDARG;
+				return caller.Call(arguments, returnValue);
+			}
+			return E_NOTIMPL;
+		}
+	};
+
+	IFlashDXPlayer &player;
+	typedef std::map<std::wstring, Callback> Callbacks;
+	Callbacks callbacks;
+
+	inline _Data(IFlashDXPlayer *pPlayer)
+	:
+		player(*pPlayer)
+	{
+		player.AddEventHandler(this);
+	}
+	inline ~_Data()
+	{
+		player.RemoveEventHandler(this);
+	}
+	HRESULT FlashCall(const wchar_t* request)
+	{
+		struct _Args { static void split(const std::wstring &xml, std::vector<std::wstring> &args)
+		{
+			const wchar_t* argStart = xml.c_str();
+			const wchar_t* argEnd = xml.c_str();
+			int nesting = 0;
+			bool closetag = false;
+			while (argEnd - xml.c_str() < (int)xml.length())
+			{
+				if (wcsncmp(argEnd, L"</arguments>", 12) == 0) break;
+				else
+				if (wcsncmp(argEnd, L"<arguments>", 11) == 0)
+				{
+					nesting = 0;
+					argStart += 11;
+					argEnd += 10;
+				}
+				else
+				if (wcsncmp(argEnd, L"</", 2) == 0) closetag = true;
+				else
+				if (wcsncmp(argEnd, L"<", 1) == 0) ++nesting;
+				else
+				if (wcsncmp(argEnd, L"/>", 2) == 0) closetag = true;
+				else
+				if (wcsncmp(argEnd, L">", 1) == 0)
+				{
+					if (closetag)
+					{
+						closetag = false;
+						if (--nesting == 0)
+						{
+							size_t start = argStart - xml.c_str();
+							size_t size = argEnd - argStart + 1;
+							args.push_back(xml.substr(start, size));
+							argStart = argEnd + 1;
+						}
+					}
+				}
+				++argEnd;
+			}
+		}};
+
+		std::wstring xml = request;
+		std::wstring functionName = xml.substr(14, xml.find(L">") - 14 - 18);
+		Callbacks::iterator itCallback = callbacks.find(functionName);
+		if (itCallback != callbacks.end())
+		{
+			std::vector<std::wstring> args;
+			_Args::split(xml.substr(xml.find(L">") + 1), args);
+			ASValue::Array arguments;
+			for (unsigned int i = 0, s = args.size(); i < s; ++i)
+			{
+				ASValue arg; arg.FromXML(args[i]);
+				arguments.push_back(arg);
+			}
+			ASValue returnValue;
+			HRESULT result = itCallback->second.Call(arguments, returnValue);
+			if (result == NOERROR) player.SetReturnValue(returnValue.ToXML().c_str());
+			return result;
+		}
+
+		return E_NOTIMPL;
+	}
+	HRESULT FSCommand(const wchar_t* command, const wchar_t* args)
+	{
+		return E_NOTIMPL;
+	}
 };
-
-// ASCallback
-
-inline ASCallback::ASCallback()
-:
-	data(* new _Data)
-{}
-template<typename _Function>
-inline ASCallback::ASCallback(const _Function &value)
-:
-	data(* new _Data)
-{}
-inline ASCallback::ASCallback(const ASCallback &value)
-:
-	data(* new _Data)
-{}
-inline ASCallback::~ASCallback()
-{
-	delete &data;
-}
-inline ASCallback& ASCallback::operator = (const ASCallback &value)
-{
-	return *this;
-}
-inline HRESULT ASCallback::Call(const ASValue::Array &arguments, ASValue &returnValue) const
-{
-	return E_NOTIMPL;
-}
 
 // ASInterface
 
 inline ASInterface::ASInterface(IFlashDXPlayer *pPlayer)
 :
-	m_player(*pPlayer)
-{
-	m_player.AddEventHandler(this);
-}
+	m_data(* new _Data(pPlayer))
+{}
 
 inline ASInterface::~ASInterface()
 {
-	m_player.RemoveEventHandler(this);
+	delete &m_data;
 }
 
 inline ASValue ASInterface::Call(const std::wstring &functionName, const ASValue &arg0, const ASValue &arg1, const ASValue &arg2, const ASValue &arg3, const ASValue &arg4, const ASValue &arg5, const ASValue &arg6, const ASValue &arg7, const ASValue &arg8, const ASValue &arg9)
@@ -468,7 +637,7 @@ inline ASValue ASInterface::Call(const std::wstring &functionName, const ASValue
 	else arguments = L"";
 
 	std::wstring request = L"<invoke name='" + functionName + L"' returntype='xml'>" + arguments + L"</invoke>";
-	const wchar_t* result = m_player.CallFunction(request.c_str());
+	const wchar_t* result = m_data.player.CallFunction(request.c_str());
 
 	if (result == NULL) return ASValue();
 
@@ -477,77 +646,13 @@ inline ASValue ASInterface::Call(const std::wstring &functionName, const ASValue
 	return value;
 }
 
-inline void ASInterface::AddCallback(const std::wstring &functionName, const ASCallback &callback)
+template<typename _Function>
+inline void ASInterface::AddCallback(const std::wstring &functionName, _Function function)
 {
-	m_callbacks[functionName] = callback;
+	m_data.callbacks[functionName] = _Data::Callback(function);
 }
-
-HRESULT ASInterface::FlashCall(const wchar_t* request)
+template<typename _Object, typename _Method>
+inline void ASInterface::AddCallback(const std::wstring &functionName, _Object &object, _Method method)
 {
-	struct _Args { static void split(const std::wstring &xml, std::vector<std::wstring> &args)
-	{
-		const wchar_t* argStart = xml.c_str();
-		const wchar_t* argEnd = xml.c_str();
-		int nesting = 0;
-		bool closetag = false;
-		while (argEnd - xml.c_str() < (int)xml.length())
-		{
-			if (wcsncmp(argEnd, L"</arguments>", 12) == 0) break;
-			else
-			if (wcsncmp(argEnd, L"<arguments>", 11) == 0)
-			{
-				nesting = 0;
-				argStart += 11;
-				argEnd += 10;
-			}
-			else
-			if (wcsncmp(argEnd, L"</", 2) == 0) closetag = true;
-			else
-			if (wcsncmp(argEnd, L"<", 1) == 0) ++nesting;
-			else
-			if (wcsncmp(argEnd, L"/>", 2) == 0) closetag = true;
-			else
-			if (wcsncmp(argEnd, L">", 1) == 0)
-			{
-				if (closetag)
-				{
-					closetag = false;
-					if (--nesting == 0)
-					{
-						size_t start = argStart - xml.c_str();
-						size_t size = argEnd - argStart + 1;
-						args.push_back(xml.substr(start, size));
-						argStart = argEnd + 1;
-					}
-				}
-			}
-			++argEnd;
-		}
-	}};
-
-	std::wstring xml = request;
-	std::wstring functionName = xml.substr(14, xml.find(L">") - 14 - 18);
-	Callbacks::iterator itCallback = m_callbacks.find(functionName);
-	if (itCallback != m_callbacks.end())
-	{
-		std::vector<std::wstring> args;
-		_Args::split(xml.substr(xml.find(L">") + 1), args);
-		ASValue::Array arguments;
-		for (unsigned int i = 0, s = args.size(); i < s; ++i)
-		{
-			ASValue arg; arg.FromXML(args[i]);
-			arguments.push_back(arg);
-		}
-		ASValue returnValue;
-		HRESULT result = itCallback->second.Call(arguments, returnValue);
-		if (result == NOERROR) m_player.SetReturnValue(returnValue.ToXML().c_str());
-		return result;
-	}
-
-	return E_NOTIMPL;
-}
-
-HRESULT ASInterface::FSCommand(const wchar_t* command, const wchar_t* args)
-{
-	return E_NOTIMPL;
+	m_data.callbacks[functionName] = _Data::Callback(object, method);
 }

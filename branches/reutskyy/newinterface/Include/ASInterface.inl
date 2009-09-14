@@ -23,6 +23,8 @@
 #pragma once
 
 #include <sstream>
+#include <limits>
+#include <float.h>
 
 // ASValue::_Data
 
@@ -129,18 +131,68 @@ struct ASValue::_Data
 
 	inline operator Boolean() const
 	{
-		assert(type == 0);
-		return *(Boolean*)data;
+		Boolean result;
+		if (type == -1) result = false;
+		else
+		if (type == 0) result = *(Boolean*)data;
+		else
+		if (type == 1) result = (*(Number*)data != 0) && !_isnan(*(Number*)data);
+		else
+		if (type == 2) result = (*(String*)data).empty();
+		else result = true;
+		return result;
 	}
 	inline operator Number() const
 	{
-		assert(type == 1);
-		return *(Number*)data;
+		Number result;
+		if (type == -1) result = std::numeric_limits<float>::quiet_NaN();
+		else
+		if (type == 0) result = (*(Boolean*)data) ? 1.f : 0.f;
+		else
+		if (type == 1) result = *(Number*)data;
+		else
+		if (type == 2)
+		{
+			const String &str = *(String*)data;
+			if (swscanf_s(str.c_str(), L"%f", &result) != 1)
+			{
+				result = std::numeric_limits<float>::quiet_NaN();
+			}
+		}
+		else result = 0;
+		return result;
+	}
+	inline operator int() const
+	{
+		Number result = Number(*this);
+		return _isnan(result) ? 0 : (int)result;
+	}
+	inline operator unsigned int() const
+	{
+		Number result = Number(*this);
+		return _isnan(result) ? 0 : (unsigned int)result;
 	}
 	inline operator String() const
 	{
-		assert(type == 2);
-		return *(String*)data;
+		std::wstringstream s;
+		if (type == -1) s << L"null";
+		else
+		if (type == 0) s << *(Boolean*)data;
+		else
+		if (type == 1) s << *(Number*)data;
+		else
+		if (type == 3)
+		{
+			Array &a = *(Array*)data;
+			for (size_t i = 0, e = a.size(); i < e; ++i)
+			{
+				if (i > 0) s << L",";
+				s << (String)a[i];
+			}
+		}
+		else
+		if (type == 4) s << L"[object Object]";
+		return s.str();
 	}
 	inline operator Array() const
 	{
@@ -244,11 +296,11 @@ inline std::wstring ASValue::ToXML() const
 
 	switch (m_data.type)
 	{
-	case 0: s << ((Boolean&)m_data.data ? L"<true/>" : L"<false/>"); break;
-	case 1: s << L"<number>" << (Number&)m_data.data << L"</number>"; break;
-	case 2: s << L"<string>" << (String&)m_data.data << L"</string>"; break;
-	case 3: s << _Array::ToXML((Array&)m_data.data); break;
-	case 4: s << _Object::ToXML((Object&)m_data.data); break;
+	case 0: s << (*(Boolean*)m_data.data ? L"<true/>" : L"<false/>"); break;
+	case 1: s << L"<number>" << *(Number*)m_data.data << L"</number>"; break;
+	case 2: s << L"<string>" << *(String*)m_data.data << L"</string>"; break;
+	case 3: s << _Array::ToXML(*(Array*)m_data.data); break;
+	case 4: s << _Object::ToXML(*(Object*)m_data.data); break;
 	default: s << L"<null/>"; break;
 	}
 

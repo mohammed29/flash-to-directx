@@ -253,9 +253,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	{
 		struct TestCallbacks
 		{
-			static bool test1(bool yes, ASValue::Array arr)
+			static void test1(bool yes, ASValue::Array arr)
 			{
-				return false;
+				//return false;
 			}
 			int test2()
 			{

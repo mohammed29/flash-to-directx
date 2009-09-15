@@ -286,34 +286,17 @@ struct IFlashDXPlayer
 
 	//---------------------------------------------------------------------
 	/// @brief				Checks if player wants update target surface.
+	/// @param unionDirtyRect Pointer on pointer that will receive pointer on united dirty rect. Can be NULL.
+	/// @param dirtyRects	Pointer on pointer that will receive address of the dirty rectangles array. Can be NULL.
+	/// @param numDirtyRects Pointer on variable that will receive size of the dirty rectangles array. Can be NULL.
 	/// @return				Dirty flag.
-	virtual bool IsNeedUpdate() const = 0;
+	virtual bool IsNeedUpdate(const RECT** unitedDirtyRect = NULL, const RECT** dirtyRects = NULL, unsigned int* numDirtyRects = NULL) = 0;
 
 	//---------------------------------------------------------------------
-	/// @brief				Returns number of dirty rectangles that player wants to update.
-	/// @return				Number of dirty rectangles.
-	virtual unsigned int GetNumDirtyRects() const = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Returns dirty rectangle by it's index.
-	/// @param index		Dirty rectangle index.
-	/// @return				Dirty rectangle data.
-	virtual const RECT* GetDirtyRect(unsigned int index) const = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Returns union of all dirty rectangles in player.
-	/// @return				Dirty rectangle data.
-	virtual RECT GetDirtyRegionBox() const = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Draws 
-	/// @param dc	REPLACE_ME
-	/// @return				void
+	/// @brief				Draws flash frame to provided DC.
+	/// @param dc			Target DC.
 	///
 	/// To use this method for updating DirectX texture use IDirect3DSurface9::GetDC() method.
-	/// It doesn't reset dirty rectangles data until next update from Flash Player. So it's still
-	/// safe to use dirty rectangles for example for IDirect3DDevice9::UpdateSurface().
-	/// See GUI sample for details.
 	virtual void DrawFrame(HDC dc) = 0;
 
 	//---------------------------------------------------------------------

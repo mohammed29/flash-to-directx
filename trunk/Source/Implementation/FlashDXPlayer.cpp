@@ -126,21 +126,14 @@ CFlashDXPlayer::~CFlashDXPlayer()
 //---------------------------------------------------------------------
 void CFlashDXPlayer::AddDirtyRect(const RECT* pRect)
 {
-	if (m_dirtyFlag == false)
-	{
-		m_dirtyRects.clear();
-		m_dirtyRect.left = m_dirtyRect.top = LONG_MAX;
-		m_dirtyRect.right = m_dirtyRect.bottom = -LONG_MAX;
-	}
-
 	m_dirtyFlag = true;
 
 	if (pRect == NULL)
 	{
 		RECT rect = { 0, 0, m_width, m_height };
-		m_dirtyRect = rect;
+		m_dirtyUnionRect = rect;
 		m_dirtyRects.clear();
-		m_dirtyRects.push_back(m_dirtyRect);
+		m_dirtyRects.push_back(m_dirtyUnionRect);
 	}
 	else
 	{
@@ -160,10 +153,10 @@ void CFlashDXPlayer::AddDirtyRect(const RECT* pRect)
 		rect.right = MIN_MACRO(rect.right, (LONG)m_width);
 		rect.bottom = MIN_MACRO(rect.bottom, (LONG)m_height);
 
-		m_dirtyRect.left = MIN_MACRO(m_dirtyRect.left, pRect->left);
-		m_dirtyRect.top = MIN_MACRO(m_dirtyRect.top, pRect->top);
-		m_dirtyRect.right = MAX_MACRO(m_dirtyRect.right, pRect->right);
-		m_dirtyRect.bottom = MAX_MACRO(m_dirtyRect.bottom, pRect->bottom);
+		m_dirtyUnionRect.left = MIN_MACRO(m_dirtyUnionRect.left, pRect->left);
+		m_dirtyUnionRect.top = MIN_MACRO(m_dirtyUnionRect.top, pRect->top);
+		m_dirtyUnionRect.right = MAX_MACRO(m_dirtyUnionRect.right, pRect->right);
+		m_dirtyUnionRect.bottom = MAX_MACRO(m_dirtyUnionRect.bottom, pRect->bottom);
 
 		m_dirtyRects.push_back(rect);
 	}
@@ -441,27 +434,19 @@ void CFlashDXPlayer::ResizePlayer(unsigned int newWidth, unsigned int newHeight)
 }
 
 //---------------------------------------------------------------------
-bool CFlashDXPlayer::IsNeedUpdate() const
+bool CFlashDXPlayer::IsNeedUpdate(const RECT** unitedDirtyRect, const RECT** dirtyRects, unsigned int* numDirtyRects)
 {
+	m_savedUnionRect = m_dirtyUnionRect;
+	m_savedDirtyRects.assign(m_dirtyRects.begin(), m_dirtyRects.end());
+
+	if (unitedDirtyRect)
+		*unitedDirtyRect = &m_savedUnionRect;
+	if (dirtyRects)
+		*dirtyRects = m_savedDirtyRects.size() ? &m_savedDirtyRects.front() : NULL;
+	if (numDirtyRects)
+		*numDirtyRects = (unsigned int)m_savedDirtyRects.size();
+
 	return m_dirtyFlag;
-}
-
-//---------------------------------------------------------------------
-unsigned int CFlashDXPlayer::GetNumDirtyRects() const
-{
-	return (unsigned int)m_dirtyRects.size();
-}
-
-//---------------------------------------------------------------------
-const RECT* CFlashDXPlayer::GetDirtyRect(unsigned int index) const
-{
-	return &m_dirtyRects[index];
-}
-
-//---------------------------------------------------------------------
-RECT CFlashDXPlayer::GetDirtyRegionBox() const
-{
-	return m_dirtyRect;
 }
 
 //---------------------------------------------------------------------
@@ -511,6 +496,9 @@ void CFlashDXPlayer::DrawFrame(HDC dc)
 		}
 
 		m_dirtyFlag = false;
+		m_dirtyRects.clear();
+		m_dirtyUnionRect.left = m_dirtyUnionRect.top = LONG_MAX;
+		m_dirtyUnionRect.right = m_dirtyUnionRect.bottom = -LONG_MAX;
 	}
 }
 

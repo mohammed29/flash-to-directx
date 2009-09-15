@@ -415,7 +415,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _A0, typename _A1>
 		struct CallHlp<_R (*)(_A0, _A1)> {
 			typedef _R (*_F)(_A0, _A1);
-			static const size_t argNum = 1;
+			static const size_t argNum = 2;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _F f, const ASValue::Array &a) {
 				r = f(a[0], a[1]);
 			}};
@@ -427,7 +427,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _A0, typename _A1, typename _A2>
 		struct CallHlp<_R (*)(_A0, _A1, _A2)> {
 			typedef _R (*_F)(_A0, _A1, _A2);
-			static const size_t argNum = 1;
+			static const size_t argNum = 3;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _F f, const ASValue::Array &a) {
 				r = f(a[0], a[1], a[2]);
 			}};
@@ -439,7 +439,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _A0, typename _A1, typename _A2, typename _A3>
 		struct CallHlp<_R (*)(_A0, _A1, _A2, _A3)> {
 			typedef _R (*_F)(_A0, _A1, _A2, _A3);
-			static const size_t argNum = 1;
+			static const size_t argNum = 4;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _F f, const ASValue::Array &a) {
 				r = f(a[0], a[1], a[2], a[3]);
 			}};
@@ -451,7 +451,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _A0, typename _A1, typename _A2, typename _A3, typename _A4>
 		struct CallHlp<_R (*)(_A0, _A1, _A2, _A3, _A4)> {
 			typedef _R (*_F)(_A0, _A1, _A2, _A3, _A4);
-			static const size_t argNum = 1;
+			static const size_t argNum = 5;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _F f, const ASValue::Array &a) {
 				r = f(a[0], a[1], a[2], a[3], a[4]);
 			}};
@@ -463,7 +463,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _A0, typename _A1, typename _A2, typename _A3, typename _A4, typename _A5>
 		struct CallHlp<_R (*)(_A0, _A1, _A2, _A3, _A4, _A5)> {
 			typedef _R (*_F)(_A0, _A1, _A2, _A3, _A4, _A5);
-			static const size_t argNum = 1;
+			static const size_t argNum = 6;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _F f, const ASValue::Array &a) {
 				r = f(a[0], a[1], a[2], a[3], a[4], a[5]);
 			}};
@@ -475,7 +475,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _A0, typename _A1, typename _A2, typename _A3, typename _A4, typename _A5, typename _A6>
 		struct CallHlp<_R (*)(_A0, _A1, _A2, _A3, _A4, _A5, _A6)> {
 			typedef _R (*_F)(_A0, _A1, _A2, _A3, _A4, _A5, _A6);
-			static const size_t argNum = 1;
+			static const size_t argNum = 7;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _F f, const ASValue::Array &a) {
 				r = f(a[0], a[1], a[2], a[3], a[4], a[5], a[6]);
 			}};
@@ -487,7 +487,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _A0, typename _A1, typename _A2, typename _A3, typename _A4, typename _A5, typename _A6, typename _A7>
 		struct CallHlp<_R (*)(_A0, _A1, _A2, _A3, _A4, _A5, _A6, _A7)> {
 			typedef _R (*_F)(_A0, _A1, _A2, _A3, _A4, _A5, _A6, _A7);
-			static const size_t argNum = 1;
+			static const size_t argNum = 8;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _F f, const ASValue::Array &a) {
 				r = f(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
 			}};
@@ -499,7 +499,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _A0, typename _A1, typename _A2, typename _A3, typename _A4, typename _A5, typename _A6, typename _A7, typename _A8>
 		struct CallHlp<_R (*)(_A0, _A1, _A2, _A3, _A4, _A5, _A6, _A7, _A8)> {
 			typedef _R (*_F)(_A0, _A1, _A2, _A3, _A4, _A5, _A6, _A7, _A8);
-			static const size_t argNum = 1;
+			static const size_t argNum = 9;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _F f, const ASValue::Array &a) {
 				r = f(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8]);
 			}};
@@ -511,7 +511,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _A0, typename _A1, typename _A2, typename _A3, typename _A4, typename _A5, typename _A6, typename _A7, typename _A8, typename _A9>
 		struct CallHlp<_R (*)(_A0, _A1, _A2, _A3, _A4, _A5, _A6, _A7, _A8, _A9)> {
 			typedef _R (*_F)(_A0, _A1, _A2, _A3, _A4, _A5, _A6, _A7, _A8, _A9);
-			static const size_t argNum = 1;
+			static const size_t argNum = 10;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _F f, const ASValue::Array &a) {
 				r = f(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9]);
 			}};
@@ -537,7 +537,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _O, typename _A0>
 		struct CallHlp<_R (_O::*)(_A0)> {
 			typedef _R (_O::*_M)(_A0);
-			static const size_t argNum = 0;
+			static const size_t argNum = 1;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _O &o, _M m, const ASValue::Array &a) {
 				r = (o.*m)(a[0]);
 			}};
@@ -549,7 +549,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _O, typename _A0, typename _A1>
 		struct CallHlp<_R (_O::*)(_A0, _A1)> {
 			typedef _R (_O::*_M)(_A0, _A1);
-			static const size_t argNum = 0;
+			static const size_t argNum = 2;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _O &o, _M m, const ASValue::Array &a) {
 				r = (o.*m)(a[0], a[1]);
 			}};
@@ -561,7 +561,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _O, typename _A0, typename _A1, typename _A2>
 		struct CallHlp<_R (_O::*)(_A0, _A1, _A2)> {
 			typedef _R (_O::*_M)(_A0, _A1, _A2);
-			static const size_t argNum = 0;
+			static const size_t argNum = 3;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _O &o, _M m, const ASValue::Array &a) {
 				r = (o.*m)(a[0], a[1], a[2]);
 			}};
@@ -573,7 +573,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _O, typename _A0, typename _A1, typename _A2, typename _A3>
 		struct CallHlp<_R (_O::*)(_A0, _A1, _A2, _A3)> {
 			typedef _R (_O::*_M)(_A0, _A1, _A2, _A3);
-			static const size_t argNum = 0;
+			static const size_t argNum = 4;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _O &o, _M m, const ASValue::Array &a) {
 				r = (o.*m)(a[0], a[1], a[2], a[3]);
 			}};
@@ -585,7 +585,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _O, typename _A0, typename _A1, typename _A2, typename _A3, typename _A4>
 		struct CallHlp<_R (_O::*)(_A0, _A1, _A2, _A3, _A4)> {
 			typedef _R (_O::*_M)(_A0, _A1, _A2, _A3, _A4);
-			static const size_t argNum = 0;
+			static const size_t argNum = 5;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _O &o, _M m, const ASValue::Array &a) {
 				r = (o.*m)(a[0], a[1], a[2], a[3], a[4]);
 			}};
@@ -597,7 +597,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _O, typename _A0, typename _A1, typename _A2, typename _A3, typename _A4, typename _A5>
 		struct CallHlp<_R (_O::*)(_A0, _A1, _A2, _A3, _A4, _A5)> {
 			typedef _R (_O::*_M)(_A0, _A1, _A2, _A3, _A4, _A5);
-			static const size_t argNum = 0;
+			static const size_t argNum = 6;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _O &o, _M m, const ASValue::Array &a) {
 				r = (o.*m)(a[0], a[1], a[2], a[3], a[4], a[5]);
 			}};
@@ -609,7 +609,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _O, typename _A0, typename _A1, typename _A2, typename _A3, typename _A4, typename _A5, typename _A6>
 		struct CallHlp<_R (_O::*)(_A0, _A1, _A2, _A3, _A4, _A5, _A6)> {
 			typedef _R (_O::*_M)(_A0, _A1, _A2, _A3, _A4, _A5, _A6);
-			static const size_t argNum = 0;
+			static const size_t argNum = 7;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _O &o, _M m, const ASValue::Array &a) {
 				r = (o.*m)(a[0], a[1], a[2], a[3], a[4], a[5], a[6]);
 			}};
@@ -621,7 +621,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _O, typename _A0, typename _A1, typename _A2, typename _A3, typename _A4, typename _A5, typename _A6, typename _A7>
 		struct CallHlp<_R (_O::*)(_A0, _A1, _A2, _A3, _A4, _A5, _A6, _A7)> {
 			typedef _R (_O::*_M)(_A0, _A1, _A2, _A3, _A4, _A5, _A6, _A7);
-			static const size_t argNum = 0;
+			static const size_t argNum = 8;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _O &o, _M m, const ASValue::Array &a) {
 				r = (o.*m)(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
 			}};
@@ -633,7 +633,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _O, typename _A0, typename _A1, typename _A2, typename _A3, typename _A4, typename _A5, typename _A6, typename _A7, typename _A8>
 		struct CallHlp<_R (_O::*)(_A0, _A1, _A2, _A3, _A4, _A5, _A6, _A7, _A8)> {
 			typedef _R (_O::*_M)(_A0, _A1, _A2, _A3, _A4, _A5, _A6, _A7, _A8);
-			static const size_t argNum = 0;
+			static const size_t argNum = 9;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _O &o, _M m, const ASValue::Array &a) {
 				r = (o.*m)(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8]);
 			}};
@@ -645,7 +645,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		template<typename _R, typename _O, typename _A0, typename _A1, typename _A2, typename _A3, typename _A4, typename _A5, typename _A6, typename _A7, typename _A8, typename _A9>
 		struct CallHlp<_R (_O::*)(_A0, _A1, _A2, _A3, _A4, _A5, _A6, _A7, _A8, _A9)> {
 			typedef _R (_O::*_M)(_A0, _A1, _A2, _A3, _A4, _A5, _A6, _A7, _A8, _A9);
-			static const size_t argNum = 0;
+			static const size_t argNum = 10;
 			template<typename _R> struct Ret { static inline void Call(ASValue &r, _O &o, _M m, const ASValue::Array &a) {
 				r = (o.*m)(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9]);
 			}};
@@ -671,7 +671,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 		};
 		template<typename _R, typename _O> struct Caller<_R _O::*> : BaseCaller
 		{
-			typedef _R _O::* _M; _O &ob; _M mt; inline Caller(_O &_ob, _M _mt) : ob(_ob), mt(_mt) {}
+			typedef _R _O::*_M; _O &ob; _M mt; inline Caller(_O &_ob, _M _mt) : ob(_ob), mt(_mt) {}
 			size_t ArgNum() { return CallHlp<_M>::argNum; }
 			void Call(const ASValue::Array &a, ASValue &r) { CallHlp<_M>::Call(r, ob, mt, a); }
 			Caller& Clone() { return * new Caller(ob, mt); }
@@ -707,13 +707,12 @@ struct ASInterface::_Data : IFlashDXEventHandler
 
 		HRESULT Call(const ASValue::Array &arguments, ASValue &returnValue) const
 		{
-			if (&caller != NULL)
-			{
-				if (caller.ArgNum() > arguments.size()) return E_INVALIDARG;
-				caller.Call(arguments, returnValue);
-				return NOERROR;
-			}
-			return E_NOTIMPL;
+			if (&caller == 0) return E_NOTIMPL;
+			if (arguments.size() < caller.ArgNum()) return E_INVALIDARG;
+
+			caller.Call(arguments, returnValue);
+
+			return NOERROR;
 		}
 	};
 

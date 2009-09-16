@@ -194,6 +194,11 @@ struct ASValue::_Data
 		if (type == 4) s << L"[object Object]";
 		return s.str();
 	}
+	inline operator const wchar_t*() const
+	{
+		assert(type == 3);
+		return (*(String*)data).c_str();
+	}
 	inline operator Array() const
 	{
 		assert(type == 3);
@@ -719,6 +724,8 @@ struct ASInterface::_Data : IFlashDXEventHandler
 	IFlashDXPlayer &player;
 	typedef std::map<std::wstring, Callback> Callbacks;
 	Callbacks callbacks;
+	Callbacks fsCallbacks;
+	Callback fsDefCallback;
 
 	inline _Data(IFlashDXPlayer *pPlayer)
 	:
@@ -796,7 +803,19 @@ struct ASInterface::_Data : IFlashDXEventHandler
 	}
 	HRESULT FSCommand(const wchar_t* command, const wchar_t* args)
 	{
-		return E_NOTIMPL;
+		Callbacks::iterator itCallback = fsCallbacks.find(command);
+		if (itCallback != fsCallbacks.end())
+		{
+			ASValue::Array arguments;
+			arguments.push_back(args);
+			ASValue returnValue;
+			return itCallback->second.Call(arguments, returnValue);
+		}
+		ASValue::Array arguments;
+		arguments.push_back(command);
+		arguments.push_back(args);
+		ASValue returnValue;
+		return fsDefCallback.Call(arguments, returnValue);
 	}
 };
 
@@ -847,4 +866,22 @@ template<typename _Object, typename _Method>
 inline void ASInterface::AddCallback(const std::wstring &functionName, _Object &object, _Method method)
 {
 	m_data.callbacks[functionName] = _Data::Callback(object, method);
+}
+inline void ASInterface::AddFSCommandCallback(const std::wstring &command, void (*function)(const wchar_t* args))
+{
+	m_data.fsCallbacks[command] = _Data::Callback(function);
+}
+template<typename _Object>
+inline void ASInterface::AddFSCommandCallback(const std::wstring &command, _Object &object, void (_Object::*method)(const wchar_t* args))
+{
+	m_data.fsCallbacks[command] = _Data::Callback(object, method);
+}
+inline void ASInterface::DefFSCommandCallback(void (*function)(const wchar_t* command, const wchar_t* args))
+{
+	m_data.fsDefCallback = _Data::Callback(function);
+}
+template<typename _Object>
+inline void ASInterface::DefFSCommandCallback(_Object &object, void (_Object::*method)(const wchar_t* command, const wchar_t* args))
+{
+	m_data.fsDefCallback = _Data::Callback(object, method);
 }

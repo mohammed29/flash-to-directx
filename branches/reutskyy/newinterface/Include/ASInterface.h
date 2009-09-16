@@ -86,6 +86,20 @@ struct ASInterface
 	template<typename _Object, typename _Method>
 	inline void AddCallback(const std::wstring &functionName, _Object &object, _Method method);
 
+	// Register a function as a fscommand callback
+	inline void AddFSCommandCallback(const std::wstring &command, void (*function)(const wchar_t* args));
+
+	// Register a method as a fscommand callback
+	template<typename _Object>
+	inline void AddFSCommandCallback(const std::wstring &command, _Object &object, void (_Object::*method)(const wchar_t* args));
+
+	// Register a function as the default fscommand callback
+	inline void DefFSCommandCallback(void (*function)(const wchar_t* command, const wchar_t* args));
+
+	// Register a method as the default fscommand callback
+	template<typename _Object>
+	inline void DefFSCommandCallback(_Object &object, void (_Object::*method)(const wchar_t* command, const wchar_t* args));
+
 private:
 	struct _Data; _Data &m_data;
 };

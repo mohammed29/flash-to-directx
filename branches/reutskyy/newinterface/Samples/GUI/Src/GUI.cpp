@@ -260,11 +260,21 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 			{
 				return 0;
 			}
+			void command1(const wchar_t*)
+			{
+			}
+			static void fsCommandDef(const wchar_t*, const wchar_t*)
+			{
+			}
 		};
 
 		TestCallbacks s_testCallbacks;
+
 		g_playerASI->AddCallback(L"test1", &TestCallbacks::test1);
 		g_playerASI->AddCallback(L"test2", s_testCallbacks, &TestCallbacks::test2);
+
+		g_playerASI->AddFSCommandCallback(L"command1", s_testCallbacks, &TestCallbacks::command1);
+		g_playerASI->DefFSCommandCallback(&TestCallbacks::fsCommandDef);
 	}
 
 	g_flashPlayer->LoadMovie(movie_path);

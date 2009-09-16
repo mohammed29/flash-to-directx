@@ -82,10 +82,7 @@ public:
 	virtual void SetProperty(int iProperty, const wchar_t* value, const wchar_t* timelineTarget = L"/");
 	virtual void SetProperty(int iProperty, double value, const wchar_t* timelineTarget = L"/");
 	virtual void ResizePlayer(unsigned int newWidth, unsigned int newHeight);
-	virtual bool IsNeedUpdate() const;
-	virtual unsigned int GetNumDirtyRects() const;
-	virtual const RECT* GetDirtyRect(unsigned int index) const;
-	virtual RECT GetDirtyRegionBox() const;
+	virtual bool IsNeedUpdate(const RECT** unitedDirtyRect = NULL, const RECT** dirtyRects = NULL, unsigned int* numDirtyRects = NULL);
 	virtual void DrawFrame(HDC dc);
 	virtual void SetMousePos(unsigned int x, unsigned int y);
 	virtual void SetMouseButtonState(unsigned int x, unsigned int y, EMouseButton button, bool pressed);
@@ -133,9 +130,12 @@ protected:
 	IOleObject*				m_oleObject;
 	IOleInPlaceObjectWindowless* m_windowlessObject;
 
-	RECT					m_dirtyRect;
+	RECT					m_dirtyUnionRect;
 	std::vector<RECT>		m_dirtyRects;
 	bool					m_dirtyFlag;
+
+	RECT					m_savedUnionRect;
+	std::vector<RECT>		m_savedDirtyRects;
 
 	intptr_t				m_userData;
 

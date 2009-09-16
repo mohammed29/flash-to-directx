@@ -109,13 +109,13 @@ ULONG STDMETHODCALLTYPE CControlSite::Release()
 }
 
 //---------------------------------------------------------------------
-HRESULT  STDMETHODCALLTYPE CControlSite::SaveObject()
+HRESULT STDMETHODCALLTYPE CControlSite::SaveObject()
 {
 	return S_OK;
 }
 
 //---------------------------------------------------------------------
-HRESULT  STDMETHODCALLTYPE CControlSite::GetMoniker(DWORD dwAssign, DWORD dwWhichMoniker, IMoniker** ppmk)
+HRESULT STDMETHODCALLTYPE CControlSite::GetMoniker(DWORD dwAssign, DWORD dwWhichMoniker, IMoniker** ppmk)
 {
 	*ppmk = NULL;
 	return E_NOTIMPL;
@@ -129,19 +129,19 @@ HRESULT STDMETHODCALLTYPE CControlSite::GetContainer(IOleContainer ** theContain
 }
 
 //---------------------------------------------------------------------
-HRESULT  STDMETHODCALLTYPE CControlSite::ShowObject()
+HRESULT STDMETHODCALLTYPE CControlSite::ShowObject()
 {
 	return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------
-HRESULT  STDMETHODCALLTYPE CControlSite::OnShowWindow(BOOL)
+HRESULT STDMETHODCALLTYPE CControlSite::OnShowWindow(BOOL)
 {
 	return E_NOTIMPL;
 }
 
 //---------------------------------------------------------------------
-HRESULT  STDMETHODCALLTYPE CControlSite::RequestNewObjectLayout()
+HRESULT STDMETHODCALLTYPE CControlSite::RequestNewObjectLayout()
 {
 	return E_NOTIMPL;
 }
@@ -156,10 +156,6 @@ HRESULT STDMETHODCALLTYPE CControlSite::ContextSensitiveHelp(/* [in] */ BOOL fEn
 HRESULT STDMETHODCALLTYPE CControlSite::GetWindow(/* [out] */ HWND __RPC_FAR* theWnndow)
 {
 	return E_FAIL;
-
-	//*theWnndow = NULL;
-	//*theWnndow = gSexyAppBase->mHWnd;
-	//return S_OK;
 }
 
 //---------------------------------------------------------------------
@@ -276,7 +272,7 @@ HRESULT STDMETHODCALLTYPE CControlSite::GetCapture()
 HRESULT STDMETHODCALLTYPE CControlSite::SetCapture(/* [in] */ BOOL fCapture)
 {
 	// TODO capture the mouse for the object
-	return S_FALSE;
+	return S_OK;
 }
 
 //---------------------------------------------------------------------

@@ -286,34 +286,17 @@ struct IFlashDXPlayer
 
 	//---------------------------------------------------------------------
 	/// @brief				Checks if player wants update target surface.
+	/// @param unionDirtyRect Pointer on pointer that will receive pointer on united dirty rect. Can be NULL.
+	/// @param dirtyRects	Pointer on pointer that will receive address of the dirty rectangles array. Can be NULL.
+	/// @param numDirtyRects Pointer on variable that will receive size of the dirty rectangles array. Can be NULL.
 	/// @return				Dirty flag.
-	virtual bool IsNeedUpdate() const = 0;
+	virtual bool IsNeedUpdate(const RECT** unitedDirtyRect = NULL, const RECT** dirtyRects = NULL, unsigned int* numDirtyRects = NULL) = 0;
 
 	//---------------------------------------------------------------------
-	/// @brief				Returns number of dirty rectangles that player wants to update.
-	/// @return				Number of dirty rectangles.
-	virtual unsigned int GetNumDirtyRects() const = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Returns dirty rectangle by it's index.
-	/// @param index		Dirty rectangle index.
-	/// @return				Dirty rectangle data.
-	virtual const RECT* GetDirtyRect(unsigned int index) const = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Returns union of all dirty rectangles in player.
-	/// @return				Dirty rectangle data.
-	virtual RECT GetDirtyRegionBox() const = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Draws 
-	/// @param dc	REPLACE_ME
-	/// @return				void
+	/// @brief				Draws flash frame to provided DC.
+	/// @param dc			Target DC.
 	///
 	/// To use this method for updating DirectX texture use IDirect3DSurface9::GetDC() method.
-	/// It doesn't reset dirty rectangles data until next update from Flash Player. So it's still
-	/// safe to use dirty rectangles for example for IDirect3DDevice9::UpdateSurface().
-	/// See GUI sample for details.
 	virtual void DrawFrame(HDC dc) = 0;
 
 	//---------------------------------------------------------------------
@@ -368,130 +351,32 @@ struct IFlashDXPlayer
 	virtual void EnableSound(bool enable) = 0;
 
 	//---------------------------------------------------------------------
-	/// @brief				
-	/// @param 
+	/// @brief				Calls Action Script function.
+	/// @param request		Function call XML.
+	///
+	/// Please use provided ASInterface helper to ease the task of calling and handling Flash events.
+	///
+	/// or
+	///
+	/// See "The external API's XML format".
+	/// http://livedocs.adobe.com/flash/9.0/main/wwhelp/wwhimpl/common/html/wwhelp.htm?context=LiveDocs_Parts&file=00000344.html
 	virtual const wchar_t* CallFunction(const wchar_t* request) = 0;
 
 	//---------------------------------------------------------------------
-	/// @brief				
-	/// @param 
+	/// @brief				Sets return value for Action Script call.
+	/// @param returnValue	Return value XML.
+	///
+	/// Please use provided ASInterface helper to ease the task of calling and handling Flash events.
+	///
+	/// or
+	///
+	/// See "The external API's XML format".
+	/// http://livedocs.adobe.com/flash/9.0/main/wwhelp/wwhimpl/common/html/wwhelp.htm?context=LiveDocs_Parts&file=00000344.html
+	/// Should be called only from IFlashDXEventHandler::FlashCall().
 	virtual void SetReturnValue(const wchar_t* returnValue) = 0;
 
-
-
-
-
-
-
-/*
 	//---------------------------------------------------------------------
-	/// @brief				Begins passing of the arguments to specified function.
-	/// @param functionName	Function to call.
-	/// @sa					PushArgument*(), CallFunction()
-	///
-	/// Use CallFunction() wrapper for easy function calling.
-	virtual void BeginFunctionCall(const wchar_t* functionName) = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Ends passing of the arguments and calls the function.
-	/// @return				Result of the call in temporarily storage. Copy it if you wish to keep it.
-	///
-	/// Use CallFunction() wrapper for easy function calling.
-	virtual const wchar_t* EndFunctionCall() = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Begins passing of the return values to Action Script.
-	/// @sa					PushArgument*()
-	///
-	/// Use PushArgument*() functions to pass return values to Action Script.
-	virtual void BeginReturn() = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Ends passing of the return values to Action Script.
-	virtual void EndReturn() = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Pushes string argument.
-	/// @param string		String to push.
-	/// @sa					BeginFunctionCall(), BeginReturn()
-	virtual void PushArgumentString(const char* string) = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Pushes string argument.
-	/// @param string		String to push.
-	/// @sa					BeginFunctionCall(), BeginReturn()
-	virtual void PushArgumentString(const wchar_t* string) = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Pushes boolean argument.
-	/// @param boolean		Boolean to push.
-	/// @sa					BeginFunctionCall(), BeginReturn()
-	virtual void PushArgumentBool(bool boolean) = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Pushes number argument.
-	/// @param number		Number to push.
-	/// @sa					BeginFunctionCall(), BeginReturn()
-	virtual void PushArgumentNumber(float number) = 0;
-
-	//---------------------------------------------------------------------
-	// TODO: arrays passing
-	//---------------------------------------------------------------------
-	// TODO: null passing
-
-	//---------------------------------------------------------------------
-	/// Automatic argument conversion helper.
-	struct Arg
-	{
-		enum EType
-		{
-			eEmpty = 0,
-			eString,
-			eWString,
-			eNumber,
-			eBool,
-		};
-
-		EType type;
-
-		union
-		{
-			const char* s;
-			const wchar_t* w;
-			float n;
-			bool b;
-		};
-
-		Arg() : type(eEmpty) {}
-		Arg(const char* _s) : type(eString), s(_s) {}
-		Arg(const wchar_t* _w) : type(eWString), w(_w) {}
-		Arg(char _n) : type(eNumber), n((float)_n) {}
-		Arg(unsigned char _n) : type(eNumber), n((float)_n) {}
-		Arg(short _n) : type(eNumber), n((float)_n) {}
-		Arg(unsigned short _n) : type(eNumber), n((float)_n) {}
-		Arg(int _n) : type(eNumber), n((float)_n) {}
-		Arg(unsigned int _n) : type(eNumber), n((float)_n) {}
-		Arg(__int64 _n) : type(eNumber), n((float)_n) {}
-		Arg(unsigned __int64 _n) : type(eNumber), n((float)_n) {}
-		Arg(float _n) : type(eNumber), n(_n) {}
-		Arg(double _n) : type(eNumber), n((float)_n) {}
-		Arg(bool _b) : type(eBool), b(_b) {}
-	};
-
-	//---------------------------------------------------------------------
-	/// @brief				Wrapper around BeginFunctionCall()/EndFunctionCall().
-	/// @param functionName	Function to call.
-	/// @return				Result of the call in temporarily storage. Copy it if you wish to keep it.
-	virtual const wchar_t* CallFunction(const wchar_t* functionName,
-		Arg arg0 = Arg(), Arg arg1 = Arg(), Arg arg2 = Arg(), Arg arg3 = Arg(), Arg arg4 = Arg(),
-		Arg arg5 = Arg(), Arg arg6 = Arg(), Arg arg7 = Arg(), Arg arg8 = Arg(), Arg arg9 = Arg()
-		) = 0;
-
-
-*/
-
-	//---------------------------------------------------------------------
-	/// @brief				Adds FSCommand() event handler.
+	/// @brief				Adds event handler.
 	/// @param pHandler		Handler interface.
 	virtual void AddEventHandler(struct IFlashDXEventHandler* pHandler) = 0;
 
@@ -518,6 +403,27 @@ struct IFlashDXPlayer
 //---------------------------------------------------------------------
 struct IFlashDXEventHandler
 {
+	//---------------------------------------------------------------------
+	/// @brief				Called when Flash Action Script uses ExternalInterface.call().
+	/// @param request		Call XML data.
+	/// @return				Should be NOERROR if call was processed successfully or E_NOTIMPL if request is not
+	///						recognized. Or any other valid COM error.
+	///
+	/// Please use provided ASInterface helper to ease the task of calling and handling Flash events.
+	///
+	/// or
+	///
+	/// See "The external API's XML format".
+	/// http://livedocs.adobe.com/flash/9.0/main/wwhelp/wwhimpl/common/html/wwhelp.htm?context=LiveDocs_Parts&file=00000344.html
 	virtual HRESULT FlashCall(const wchar_t* request) = 0;
+
+	//---------------------------------------------------------------------
+	/// @brief				Called when Flash Action Script uses fscommand().
+	/// @param command		Command string.
+	/// @param args			Arguments string.
+	/// @return				Should be NOERROR if call was processed successfully or E_NOTIMPL if request is not
+	///						recognized. Or any other valid COM error.
+	///
+	/// Please use provided ASInterface helper to ease the task of calling and handling Flash events.
 	virtual HRESULT FSCommand(const wchar_t* command, const wchar_t* args) = 0;
 };

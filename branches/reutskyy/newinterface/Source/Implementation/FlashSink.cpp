@@ -162,28 +162,3 @@ HRESULT STDMETHODCALLTYPE CFlashSink::Invoke(DISPID dispIdMember, REFIID riid, L
 
 	return DISP_E_MEMBERNOTFOUND;
 }
-
-////---------------------------------------------------------------------
-//HRESULT CFlashSink::OnReadyStateChange(long newState)
-//{
-//	return E_NOTIMPL;
-//}
-//
-////---------------------------------------------------------------------
-//HRESULT CFlashSink::OnProgress(long percentDone)
-//{
-//	return E_NOTIMPL;
-//}
-//
-////---------------------------------------------------------------------
-//HRESULT CFlashSink::FSCommand(_bstr_t command, _bstr_t args)
-//{
-//	return E_NOTIMPL;
-//}
-//
-////---------------------------------------------------------------------
-//HRESULT CFlashSink::FlashCall(_bstr_t request)
-//{
-//	m_flashPlayer->Invoke(request);
-//	return S_OK;
-//}

@@ -35,6 +35,7 @@ const bool use_transparency = false;
 
 // Global Variables:
 HINSTANCE hInst;								// current instance
+HWND hWnd;
 TCHAR szTitle[max_loadstring];					// The title bar text
 TCHAR szWindowClass[max_loadstring];			// the main window class name
 
@@ -171,8 +172,6 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-	HWND hWnd;
-
 	hInst = hInstance; // Store instance handle in our global variable
 
 	// Set current directory to module directory
@@ -370,27 +369,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_MOUSEMOVE:
 		if (g_flashPlayer)
 			g_flashPlayer->SetMousePos(GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam));
-		return 1;
+		return 0;
 	case WM_LBUTTONDOWN:
 		if (g_flashPlayer)
 			g_flashPlayer->SetMouseButtonState(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), IFlashDXPlayer::eMouse1, true);
-		return 1;
+		return 0;
 	case WM_LBUTTONUP:
 		if (g_flashPlayer)
 			g_flashPlayer->SetMouseButtonState(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), IFlashDXPlayer::eMouse1, false);
-		return 1;
+		return 0;
 	case WM_KEYDOWN:
 		if (g_flashPlayer)
 			g_flashPlayer->SendKey(true, (int)wParam, (int)lParam);
-		return 1;
+		return 0;
 	case WM_KEYUP:
 		if (g_flashPlayer)
 			g_flashPlayer->SendKey(false, (int)wParam, (int)lParam);
-		return 1;
+		return 0;
 	case WM_CHAR:
 		if (g_flashPlayer)
 			g_flashPlayer->SendChar((int)wParam, (int)lParam);
-		return 1;
+		return 0;
 	case WM_SIZE:
 		if (g_flashPlayer)
 		{
@@ -400,7 +399,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			g_device->Reset(&g_params);
 			RecreateTargets(g_params.BackBufferWidth, g_params.BackBufferHeight);
 		}
-		return 1;
+		return 0;
 	case WM_SETCURSOR:
 		if (g_flashPlayer)
 		{
@@ -429,7 +428,8 @@ void DrawFrame()
 	HRESULT hr;
 
 	// Update flash movie if necessarily
-	if (g_flashPlayer->IsNeedUpdate())
+	unsigned int numDirtyRects; const RECT* dirtyRects;
+	if (g_flashPlayer->IsNeedUpdate(NULL, &dirtyRects, &numDirtyRects))
 	{
 		IDirect3DTexture9* pTexToUpdate = g_texturesRotation[g_currentTexture];
 		if (++g_currentTexture == num_textures_in_rotation)
@@ -454,11 +454,10 @@ void DrawFrame()
 		hr = g_textureGUI->GetSurfaceLevel(0, &pDestSurface);
 		assert(SUCCEEDED(hr));
 
-		for (unsigned int i = 0; i < g_flashPlayer->GetNumDirtyRects(); ++i)
+		for (unsigned int i = 0; i < numDirtyRects; ++i)
 		{
-			const RECT* dirtyRect = g_flashPlayer->GetDirtyRect(i);
-			POINT destPoint = { dirtyRect->left, dirtyRect->top };
-			hr = g_device->UpdateSurface(pSrcSurface, dirtyRect, pDestSurface, &destPoint);
+			POINT destPoint = { dirtyRects[i].left, dirtyRects[i].top };
+			hr = g_device->UpdateSurface(pSrcSurface, dirtyRects + i, pDestSurface, &destPoint);
 			assert(SUCCEEDED(hr));
 		}
 

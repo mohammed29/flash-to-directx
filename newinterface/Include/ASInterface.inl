@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------
-// Copyright (c) 2009 Maksym Diachenko, Viktor Reutskyy, Anton Suchov
+// Copyright (c) 2009 Maksym Diachenko, Viktor Reutskyy, Anton Suchov.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -26,15 +26,13 @@
 #include <limits>
 #include <float.h>
 
+//---------------------------------------------------------------------
 // ASValue::_Data
-
+//---------------------------------------------------------------------
 struct ASValue::_Data
 {
 	int type;
 	void* data;
-	//union {
-	//	char b[sizeof(Boolean)]; char n[sizeof(Number)]; char s[sizeof(String)]; char a[sizeof(Array)]; char o[sizeof(Object)];
-	//} data;
 
 	inline _Data()
 	:
@@ -211,8 +209,10 @@ struct ASValue::_Data
 	}
 };
 
-// ASValue
 
+//---------------------------------------------------------------------
+// ASValue
+//---------------------------------------------------------------------
 inline ASValue::ASValue()
 :
 	m_data(* new _Data)
@@ -384,8 +384,10 @@ inline void ASValue::FromXML(const std::wstring &xml)
 	}
 }
 
-// ASInterface::_Data
 
+//---------------------------------------------------------------------
+// ASInterface::_Data
+//---------------------------------------------------------------------
 struct ASInterface::_Data : IFlashDXEventHandler
 {
 	struct Callback
@@ -819,8 +821,9 @@ struct ASInterface::_Data : IFlashDXEventHandler
 	}
 };
 
+//---------------------------------------------------------------------
 // ASInterface
-
+//---------------------------------------------------------------------
 inline ASInterface::ASInterface(IFlashDXPlayer *pPlayer)
 :
 	m_data(* new _Data(pPlayer))
@@ -867,21 +870,21 @@ inline void ASInterface::AddCallback(const std::wstring &functionName, _Object &
 {
 	m_data.callbacks[functionName] = _Data::Callback(object, method);
 }
-inline void ASInterface::AddFSCommandCallback(const std::wstring &command, void (*function)(const wchar_t* args))
+inline void ASInterface::AddFSCCallback(const std::wstring &command, void (*function)(const wchar_t* args))
 {
 	m_data.fsCallbacks[command] = _Data::Callback(function);
 }
 template<typename _Object>
-inline void ASInterface::AddFSCommandCallback(const std::wstring &command, _Object &object, void (_Object::*method)(const wchar_t* args))
+inline void ASInterface::AddFSCCallback(const std::wstring &command, _Object &object, void (_Object::*method)(const wchar_t* args))
 {
 	m_data.fsCallbacks[command] = _Data::Callback(object, method);
 }
-inline void ASInterface::DefFSCommandCallback(void (*function)(const wchar_t* command, const wchar_t* args))
+inline void ASInterface::SetDefaultFSCCallback(void (*function)(const wchar_t* command, const wchar_t* args))
 {
 	m_data.fsDefCallback = _Data::Callback(function);
 }
 template<typename _Object>
-inline void ASInterface::DefFSCommandCallback(_Object &object, void (_Object::*method)(const wchar_t* command, const wchar_t* args))
+inline void ASInterface::SetDefaultFSCCallback(_Object &object, void (_Object::*method)(const wchar_t* command, const wchar_t* args))
 {
 	m_data.fsDefCallback = _Data::Callback(object, method);
 }

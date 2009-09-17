@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------
-// Copyright (c) 2009 Maksym Diachenko, Viktor Reutskyy, Anton Suchov
+// Copyright (c) 2009 Maksym Diachenko, Viktor Reutskyy, Anton Suchov.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -42,25 +42,7 @@ TCHAR szWindowClass[max_loadstring];			// the main window class name
 IFlashDX*			g_flashDX = NULL;
 IFlashDXPlayer*		g_flashPlayer = NULL;
 
-struct EventHandler : IFlashDXEventHandler
-{
-	HRESULT FlashCall(const wchar_t* request)
-	{
-		if (wcsstr(request, L"<invoke name=\"test\"") != NULL)
-		{
-			g_flashPlayer->SetReturnValue(L"<false/>");
-			return NOERROR;
-		}
-		return E_NOTIMPL;
-	}
-	HRESULT FSCommand(const wchar_t* command, const wchar_t* args)
-	{
-		return E_NOTIMPL;
-	}
-};
-EventHandler g_eventHandler;
-
-ASInterface* g_playerASI;
+ASInterface*		g_playerASI;
 
 IDirect3D9*			g_direct3D = NULL;
 IDirect3DDevice9*	g_device = NULL;
@@ -242,19 +224,16 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		return FALSE;
 	}
 
-	g_flashPlayer->AddEventHandler(&g_eventHandler);
-
 	g_playerASI = new ASInterface(g_flashPlayer);
 
 	//---------------------------------------------------------------------
-	// Function callbacks
+	// Function callbacks example
 	//---------------------------------------------------------------------
 	{
 		struct TestCallbacks
 		{
 			static void test1(bool yes, ASValue::Array arr)
 			{
-				//return false;
 			}
 			int test2()
 			{
@@ -273,33 +252,20 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		g_playerASI->AddCallback(L"test1", &TestCallbacks::test1);
 		g_playerASI->AddCallback(L"test2", s_testCallbacks, &TestCallbacks::test2);
 
-		g_playerASI->AddFSCommandCallback(L"command1", s_testCallbacks, &TestCallbacks::command1);
-		g_playerASI->DefFSCommandCallback(&TestCallbacks::fsCommandDef);
+		g_playerASI->AddFSCCallback(L"command1", s_testCallbacks, &TestCallbacks::command1);
+		g_playerASI->SetDefaultFSCCallback(&TestCallbacks::fsCommandDef);
 	}
 
+	//---------------------------------------------------------------------
+	// Load and play movie
+	//---------------------------------------------------------------------
 	g_flashPlayer->LoadMovie(movie_path);
 
 	g_flashPlayer->SetTransparencyMode(use_transparency ? IFlashDXPlayer::TMODE_TRANSPARENT : IFlashDXPlayer::TMODE_OPAQUE);
 	g_flashPlayer->SetBackgroundColor(0xFFFFFFFF);
 
 	//---------------------------------------------------------------------
-	// Function call
-	//---------------------------------------------------------------------
-	{
-		const wchar_t* result = g_flashPlayer->CallFunction
-		(
-			L"<invoke name='test' returntype='xml'>"
-				L"<arguments>"
-					L"<true/>"
-				L"</arguments>"
-			L"</invoke>"
-		);
-
-		OutputDebugString(result);
-	}
-
-	//---------------------------------------------------------------------
-	// Function call (ASInterface)
+	// Function call example
 	//---------------------------------------------------------------------
 	{
 		bool boolResult = g_playerASI->Call(L"test", true);
@@ -307,31 +273,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		std::wstring stringResult = g_playerASI->Call(L"test2", 123.456);
 		ASValue::Array arrayResult = g_playerASI->Call(L"test3", stringResult);
 		ASValue::Object objectResult = g_playerASI->Call(L"test4", arrayResult);
-
-		OutputDebugString(L"");
 	}
-
-	//// Function call
-	//g_flashPlayer->BeginFunctionCall(L"testFunctionCall");
-	//g_flashPlayer->PushArgumentString("String");
-	//g_flashPlayer->PushArgumentString(L"WString");
-	//g_flashPlayer->PushArgumentNumber(10.0f);
-	//g_flashPlayer->PushArgumentBool(true);
-
-	//std::wstring result;
-	//if (const wchar_t* pResult = g_flashPlayer->EndFunctionCall())
-	//	result = pResult;
-
-	//result += L"\n";
-	//OutputDebugString(result.c_str());
-
-	//// Easy way of function call
-	//std::wstring result2;
-	//if (const wchar_t* pResult = g_flashPlayer->CallFunction(L"testFunctionCall", "String", L"WString", 10, true))
-	//	result2 = pResult;
-
-	//result2 += L"\n";
-	//OutputDebugString(result2.c_str());
 
 	// Show window
 	ShowWindow(hWnd, nCmdShow);

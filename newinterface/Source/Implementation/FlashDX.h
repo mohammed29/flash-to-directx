@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "../../Include/IFlashDX.h"
+#include "IFlashDX.h"
 
 //---------------------------------------------------------------------
 /// Implementation of IFlashDX interface.

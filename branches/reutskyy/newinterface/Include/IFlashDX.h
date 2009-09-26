@@ -119,6 +119,11 @@ struct IFlashDXPlayer
 	};
 
 	//---------------------------------------------------------------------
+	/// @brief				Gets quality of the player's output.
+	/// @return				Quality settings.
+	virtual EQuality GetQuality() const = 0;
+
+	//---------------------------------------------------------------------
 	/// @brief				Sets quality of the player's output.
 	/// @param quality		Quality settings.
 	virtual void SetQuality(EQuality quality) = 0;
@@ -136,6 +141,11 @@ struct IFlashDXPlayer
 		TMODE_OPAQUE = 0,		///< Alpha is disabled. Use texture surface format with disabled alpha (such X8R8G8B8).
 		TMODE_TRANSPARENT = 1
 	};
+
+	//---------------------------------------------------------------------
+	/// @brief				Gets transparency mode for the player.
+	/// @return				Transparency mode.
+	virtual ETransparencyMode GetTransparencyMode() const = 0;
 
 	//---------------------------------------------------------------------
 	/// @brief				Sets transparency mode for the player.
@@ -337,13 +347,13 @@ struct IFlashDXPlayer
 	/// @param virtualKey	Virtual key (see WM_KEYUP/WM_KEYDOWN event).
 	/// @param extended		Extended data (see WM_KEYUP/WM_KEYDOWN event).
 	/// @return				void
-	virtual void SendKey(bool pressed, int virtualKey, int extended) = 0;
+	virtual void SendKey(bool pressed, UINT_PTR virtualKey, LONG_PTR extended) = 0;
 
 	//---------------------------------------------------------------------
 	/// @brief				Sends character to flash control.
 	/// @param character	Character to send.
 	/// @param extended		Extended data (see WM_CHAR event).
-	virtual void SendChar(int character, int extended) = 0;
+	virtual void SendChar(UINT_PTR character, LONG_PTR extended) = 0;
 
 	//---------------------------------------------------------------------
 	/// @brief				Enables/disables sound for flash control.

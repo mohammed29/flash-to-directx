@@ -40,7 +40,7 @@ IFlashDX* GetFlashToDirectXInstance()
 CFlashDX::CFlashDX()
 {
 	CoInitialize(NULL);
-	m_flashLibHandle = LoadLibrary(L"flash10a.ocx");
+	m_flashLibHandle = LoadLibrary(L"flash10c.ocx");
 }
 
 //---------------------------------------------------------------------

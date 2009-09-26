@@ -277,7 +277,7 @@ inline std::wstring ASValue::ToXML() const
 	{
 		std::wstringstream s;
 		s << "<array>";
-		for (unsigned int i = 0, e = a.size(); i < e; ++i)
+		for (size_t i = 0, e = (unsigned int)a.size(); i < e; ++i)
 		{
 			s << L"<property id='" << i << L"'>" << a[i].ToXML() << L"</property>";
 		}
@@ -790,7 +790,7 @@ struct ASInterface::_Data : IFlashDXEventHandler
 			std::vector<std::wstring> args;
 			_Args::split(xml.substr(xml.find(L">") + 1), args);
 			ASValue::Array arguments;
-			for (unsigned int i = 0, s = args.size(); i < s; ++i)
+			for (size_t i = 0, s = args.size(); i < s; ++i)
 			{
 				ASValue arg; arg.FromXML(args[i]);
 				arguments.push_back(arg);

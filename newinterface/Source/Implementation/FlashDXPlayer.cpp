@@ -464,15 +464,18 @@ void CFlashDXPlayer::ResizePlayer(unsigned int newWidth, unsigned int newHeight)
 //---------------------------------------------------------------------
 bool CFlashDXPlayer::IsNeedUpdate(const RECT** unitedDirtyRect, const RECT** dirtyRects, unsigned int* numDirtyRects)
 {
-	m_savedUnionRect = m_dirtyUnionRect;
-	m_savedDirtyRects.assign(m_dirtyRects.begin(), m_dirtyRects.end());
+	if (m_dirtyFlag)
+	{
+		m_savedUnionRect = m_dirtyUnionRect;
+		m_savedDirtyRects.assign(m_dirtyRects.begin(), m_dirtyRects.end());
 
-	if (unitedDirtyRect)
-		*unitedDirtyRect = &m_savedUnionRect;
-	if (dirtyRects)
-		*dirtyRects = m_savedDirtyRects.size() ? &m_savedDirtyRects.front() : NULL;
-	if (numDirtyRects)
-		*numDirtyRects = (unsigned int)m_savedDirtyRects.size();
+		if (unitedDirtyRect)
+			*unitedDirtyRect = &m_savedUnionRect;
+		if (dirtyRects)
+			*dirtyRects = m_savedDirtyRects.size() ? &m_savedDirtyRects.front() : NULL;
+		if (numDirtyRects)
+			*numDirtyRects = (unsigned int)m_savedDirtyRects.size();
+	}
 
 	return m_dirtyFlag;
 }

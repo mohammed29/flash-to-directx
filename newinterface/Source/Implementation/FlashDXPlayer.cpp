@@ -521,7 +521,8 @@ void CFlashDXPlayer::DrawFrame(HDC dc)
 			DeleteObject(unionRgn);
 
 			RECTL clipRect = { 0, 0, m_width, m_height };
-			pViewObject->Draw(DVASPECT_TRANSPARENT, 1, NULL, NULL, NULL, dc, &clipRect, &clipRect, NULL, 0);
+			HRESULT hr = pViewObject->Draw(DVASPECT_TRANSPARENT, 1, NULL, NULL, NULL, dc, &clipRect, &clipRect, NULL, 0);
+			assert(SUCCEEDED(hr));
 
 			pViewObject->Release();
 		}

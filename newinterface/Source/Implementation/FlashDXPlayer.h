@@ -55,7 +55,9 @@ public:
 	virtual void SetUserData(intptr_t data);
 	virtual intptr_t GetUserData() const;
 	virtual EState GetState() const;
+	virtual EQuality GetQuality() const;
 	virtual void SetQuality(EQuality quality);
+	virtual ETransparencyMode GetTransparencyMode() const;
 	virtual void SetTransparencyMode(ETransparencyMode mode);
 	virtual bool LoadMovie(const wchar_t* movie);
 	virtual COLORREF GetBackgroundColor();
@@ -87,8 +89,8 @@ public:
 	virtual void SetMousePos(unsigned int x, unsigned int y);
 	virtual void SetMouseButtonState(unsigned int x, unsigned int y, EMouseButton button, bool pressed);
 	virtual void SendMouseWheel(int delta);
-	virtual void SendKey(bool pressed, int virtualKey, int extended);
-	virtual void SendChar(int character, int extended);
+	virtual void SendKey(bool pressed, UINT_PTR virtualKey, LONG_PTR extended);
+	virtual void SendChar(UINT_PTR character, LONG_PTR extended);
 	virtual void EnableSound(bool enable);
 
 	virtual const wchar_t* CallFunction(const wchar_t* request);

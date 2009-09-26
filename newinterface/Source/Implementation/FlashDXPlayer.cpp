@@ -188,16 +188,41 @@ IFlashDXPlayer::EState CFlashDXPlayer::GetState() const
 	return IFlashDXPlayer::STATE_STOPPED;
 }
 
+static wchar_t* aQualityNames[6] = { L"Low", L"Medium", L"High", L"Best", L"AutoLow", L"AutoHigh" };
+
+//---------------------------------------------------------------------
+IFlashDXPlayer::EQuality CFlashDXPlayer::GetQuality() const
+{
+	if (m_flashInterface)
+	{
+		for (int i = 0; i < 6; ++i)
+			if (_wcsicmp(aQualityNames[i], m_flashInterface->GetQuality2()) == 0)
+				return (IFlashDXPlayer::EQuality)(IFlashDXPlayer::QUALITY_LOW + i);
+	}
+	return IFlashDXPlayer::QUALITY_HIGH;
+}
+
 //---------------------------------------------------------------------
 void CFlashDXPlayer::SetQuality(EQuality quality)
 {
 	if (m_flashInterface)
 	{
-		static char* aQualityNames[6] = { "Low", "Medium", "High", "Best", "AutoLow", "AutoHigh" };
 
-		_bstr_t newStr = aQualityNames[quality];
+		_bstr_t newStr(aQualityNames[quality]);
 		m_flashInterface->PutQuality2(newStr);
 	}
+}
+
+//---------------------------------------------------------------------
+IFlashDXPlayer::ETransparencyMode CFlashDXPlayer::GetTransparencyMode() const
+{
+	if (m_flashInterface)
+	{
+		_bstr_t transparent("transparent");
+		if (_wcsicmp(transparent, m_flashInterface->GetWMode()) == 0)
+			return IFlashDXPlayer::TMODE_TRANSPARENT;
+	}
+	return IFlashDXPlayer::TMODE_OPAQUE;
 }
 
 //---------------------------------------------------------------------
@@ -582,7 +607,7 @@ void CFlashDXPlayer::SendMouseWheel(int delta)
 }
 
 //---------------------------------------------------------------------
-void CFlashDXPlayer::SendKey(bool pressed, int virtualKey, int extended)
+void CFlashDXPlayer::SendKey(bool pressed, UINT_PTR virtualKey, LONG_PTR extended)
 {
 	LRESULT lr;
 	if (pressed)
@@ -592,7 +617,7 @@ void CFlashDXPlayer::SendKey(bool pressed, int virtualKey, int extended)
 }
 
 //---------------------------------------------------------------------
-void CFlashDXPlayer::SendChar(int character, int extended)
+void CFlashDXPlayer::SendChar(UINT_PTR character, LONG_PTR extended)
 {
 	LRESULT lr;
 	m_windowlessObject->OnWindowMessage(WM_CHAR, (WPARAM)character, (LPARAM)extended, &lr);

@@ -332,15 +332,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		return 0;
 	case WM_KEYDOWN:
 		if (g_flashPlayer)
-			g_flashPlayer->SendKey(true, (int)wParam, (int)lParam);
+			g_flashPlayer->SendKey(true, wParam, lParam);
 		return 0;
 	case WM_KEYUP:
 		if (g_flashPlayer)
-			g_flashPlayer->SendKey(false, (int)wParam, (int)lParam);
+			g_flashPlayer->SendKey(false, wParam, lParam);
 		return 0;
 	case WM_CHAR:
 		if (g_flashPlayer)
-			g_flashPlayer->SendChar((int)wParam, (int)lParam);
+			g_flashPlayer->SendChar(wParam, lParam);
 		return 0;
 	case WM_SIZE:
 		if (g_flashPlayer)

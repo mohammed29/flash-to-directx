@@ -47,6 +47,13 @@ CFlashDXPlayer::CFlashDXPlayer(HMODULE flashDLL, unsigned int width, unsigned in
 	m_controlSite.Init(this);
 	m_controlSite.AddRef();
 
+	m_alphaBlackDC = NULL;
+	m_alphaBlackBitmap = NULL;
+	m_alphaBlackBuffer = NULL;
+	m_alphaWhiteDC = NULL;
+	m_alphaWhiteBitmap = NULL;
+	m_alphaWhiteBuffer = NULL;
+
 	HRESULT hr;
 
 	typedef HRESULT (__stdcall *DllGetClassObjectFunc)(REFCLSID rclsid, REFIID riid, LPVOID * ppv);
@@ -108,6 +115,14 @@ CFlashDXPlayer::CFlashDXPlayer(HMODULE flashDLL, unsigned int width, unsigned in
 //---------------------------------------------------------------------
 CFlashDXPlayer::~CFlashDXPlayer()
 {
+	if (m_alphaBlackDC)
+	{
+		DeleteDC(m_alphaBlackDC);
+		DeleteObject(m_alphaBlackBitmap);
+		DeleteDC(m_alphaWhiteDC);
+		DeleteObject(m_alphaWhiteBitmap);
+	}
+
 	SAFE_RELEASE(m_windowlessObject);
 	SAFE_RELEASE(m_flashInterface);
 
@@ -126,7 +141,7 @@ CFlashDXPlayer::~CFlashDXPlayer()
 //---------------------------------------------------------------------
 void CFlashDXPlayer::AddDirtyRect(const RECT* pRect)
 {
-	if (IsRectEmpty(pRect))
+	if (pRect && IsRectEmpty(pRect))
 		return;
 
 	m_dirtyFlag = true;
@@ -216,13 +231,7 @@ void CFlashDXPlayer::SetQuality(EQuality quality)
 //---------------------------------------------------------------------
 IFlashDXPlayer::ETransparencyMode CFlashDXPlayer::GetTransparencyMode() const
 {
-	if (m_flashInterface)
-	{
-		_bstr_t transparent("transparent");
-		if (_wcsicmp(transparent, m_flashInterface->GetWMode()) == 0)
-			return IFlashDXPlayer::TMODE_TRANSPARENT;
-	}
-	return IFlashDXPlayer::TMODE_OPAQUE;
+	return m_transpMode;
 }
 
 //---------------------------------------------------------------------
@@ -236,12 +245,15 @@ void CFlashDXPlayer::SetTransparencyMode(ETransparencyMode mode)
 			m_flashInterface->PutWMode(_bstr_t("opaque"));
 			break;
 		case IFlashDXPlayer::TMODE_TRANSPARENT:
+		case IFlashDXPlayer::TMODE_FULL_ALPHA:
 			m_flashInterface->PutWMode(_bstr_t("transparent"));
 			break;
 		default:
 			break;
 		}
 	}
+
+	m_transpMode = mode;
 }
 
 //---------------------------------------------------------------------
@@ -277,7 +289,7 @@ COLORREF CFlashDXPlayer::GetBackgroundColor()
 void CFlashDXPlayer::SetBackgroundColor(COLORREF color)
 {
 	if (m_flashInterface)
-		m_flashInterface->PutBackgroundColor((long)color);
+		m_flashInterface->PutBackgroundColor((long)(color & 0x00FFFFFF));
 }
 
 //---------------------------------------------------------------------
@@ -459,6 +471,21 @@ void CFlashDXPlayer::ResizePlayer(unsigned int newWidth, unsigned int newHeight)
 
 		AddDirtyRect(NULL);
 	}
+
+	if (m_alphaBlackDC)
+	{
+		DeleteDC(m_alphaBlackDC);
+		DeleteObject(m_alphaBlackBitmap);
+		DeleteDC(m_alphaWhiteDC);
+		DeleteObject(m_alphaWhiteBitmap);
+
+		m_alphaBlackDC = NULL;
+		m_alphaBlackBitmap = NULL;
+		m_alphaBlackBuffer = NULL;
+		m_alphaWhiteDC = NULL;
+		m_alphaWhiteBitmap = NULL;
+		m_alphaWhiteBuffer = NULL;
+	}
 }
 
 //---------------------------------------------------------------------
@@ -466,6 +493,8 @@ bool CFlashDXPlayer::IsNeedUpdate(const RECT** unitedDirtyRect, const RECT** dir
 {
 	if (m_dirtyFlag)
 	{
+		while (ReduceNumDirtyRects());
+
 		m_savedUnionRect = m_dirtyUnionRect;
 		m_savedDirtyRects.assign(m_dirtyRects.begin(), m_dirtyRects.end());
 
@@ -478,6 +507,36 @@ bool CFlashDXPlayer::IsNeedUpdate(const RECT** unitedDirtyRect, const RECT** dir
 	}
 
 	return m_dirtyFlag;
+}
+
+//---------------------------------------------------------------------
+bool CFlashDXPlayer::ReduceNumDirtyRects()
+{
+	for (std::vector<RECT>::iterator firstIt = m_dirtyRects.begin(); firstIt != m_dirtyRects.end(); ++firstIt)
+	{
+		for (std::vector<RECT>::iterator secondIt = m_dirtyRects.begin(); secondIt != m_dirtyRects.end(); ++secondIt)
+		{
+			if (firstIt == secondIt)
+				continue;
+
+			RECT unionRect;
+			if (UnionRect(&unionRect, &(*firstIt), &(*secondIt)))
+			{
+				if (EqualRect(&unionRect, &(*firstIt)))
+				{
+					m_dirtyRects.erase(secondIt);
+					return true;
+				}
+				if (EqualRect(&unionRect, &(*secondIt)))
+				{
+					m_dirtyRects.erase(firstIt);
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
 }
 
 //---------------------------------------------------------------------
@@ -509,21 +568,92 @@ void CFlashDXPlayer::DrawFrame(HDC dc)
 			if (second)
 				DeleteObject(second);
 
-			// Set clip region
-			SelectClipRgn(dc, unionRgn);
+			RECT clipRgnRect; GetRgnBox(unionRgn, &clipRgnRect);
+			RECTL clipRect = { 0, 0, m_width, m_height };
 
 			// Fill background
-			COLORREF fillColor = GetBackgroundColor();
-			HBRUSH fillColorBrush = CreateSolidBrush(fillColor);
-			FillRgn(dc, unionRgn, fillColorBrush);
-			DeleteObject(fillColorBrush);
+			if (m_transpMode != TMODE_FULL_ALPHA)
+			{
+				// Set clip region
+				SelectClipRgn(dc, unionRgn);
+
+				COLORREF fillColor = GetBackgroundColor();
+				HBRUSH fillColorBrush = CreateSolidBrush(fillColor);
+				FillRgn(dc, unionRgn, fillColorBrush);
+				DeleteObject(fillColorBrush);
+
+				// Draw to main buffer
+				HRESULT hr = pViewObject->Draw(DVASPECT_TRANSPARENT, 1, NULL, NULL, NULL, dc, &clipRect, &clipRect, NULL, 0);
+				assert(SUCCEEDED(hr));
+			}
+			else
+			{
+				if (m_alphaBlackDC == NULL)
+				{
+					// Create memory buffers
+					BITMAPINFOHEADER bih = {0};
+					bih.biSize = sizeof(BITMAPINFOHEADER);
+					bih.biBitCount = 32;
+					bih.biCompression = BI_RGB;
+					bih.biPlanes = 1;
+					bih.biWidth = LONG(m_width);
+					bih.biHeight = -LONG(m_height);
+
+					m_alphaBlackDC = CreateCompatibleDC(dc);
+					m_alphaBlackBitmap = CreateDIBSection(m_alphaBlackDC, (BITMAPINFO*)&bih, DIB_RGB_COLORS, (void**)&m_alphaBlackBuffer, 0, 0);
+					SelectObject(m_alphaBlackDC, m_alphaBlackBitmap);
+
+					m_alphaWhiteDC = CreateCompatibleDC(dc);
+					m_alphaWhiteBitmap = CreateDIBSection(m_alphaWhiteDC, (BITMAPINFO*)&bih, DIB_RGB_COLORS, (void**)&m_alphaWhiteBuffer, 0, 0);
+					SelectObject(m_alphaWhiteDC, m_alphaWhiteBitmap);
+				}
+
+				HRESULT hr;
+				HBRUSH fillColorBrush;
+
+				// Render frame twice - against white and against black background to calculate alpha
+				SelectClipRgn(m_alphaBlackDC, unionRgn);
+
+				COLORREF blackColor = 0x00000000;
+				fillColorBrush = CreateSolidBrush(blackColor);
+				FillRgn(m_alphaBlackDC, unionRgn, fillColorBrush);
+				DeleteObject(fillColorBrush);
+
+				hr = pViewObject->Draw(DVASPECT_TRANSPARENT, 1, NULL, NULL, NULL, m_alphaBlackDC, &clipRect, &clipRect, NULL, 0);
+				assert(SUCCEEDED(hr));
+
+				// White background
+				SelectClipRgn(m_alphaWhiteDC, unionRgn);
+
+				COLORREF whiteColor = 0x00FFFFFF;
+				fillColorBrush = CreateSolidBrush(whiteColor);
+				FillRgn(m_alphaWhiteDC, unionRgn, fillColorBrush);
+				DeleteObject(fillColorBrush);
+
+				hr = pViewObject->Draw(DVASPECT_TRANSPARENT, 1, NULL, NULL, NULL, m_alphaWhiteDC, &clipRect, &clipRect, NULL, 0);
+				assert(SUCCEEDED(hr));
+
+				// Combine alpha
+				for (LONG y = clipRgnRect.top; y < clipRgnRect.bottom; ++y)
+				{
+					int offset = y * m_width * 4 + clipRgnRect.left * 4;
+					for (LONG x = clipRgnRect.left; x < clipRgnRect.right; ++x)
+					{
+						BYTE blackRed = m_alphaBlackBuffer[offset];
+						BYTE whiteRed = m_alphaWhiteBuffer[offset];
+						m_alphaBlackBuffer[offset + 3] = 255 - (whiteRed - blackRed);
+						offset += 4;
+					}
+				}
+
+				// Blit result to target DC
+				BitBlt(dc, clipRgnRect.left, clipRgnRect.top,
+					   clipRgnRect.right - clipRgnRect.left,
+					   clipRgnRect.bottom - clipRgnRect.top,
+					   m_alphaBlackDC, clipRgnRect.left, clipRgnRect.top, SRCCOPY);
+			}
 
 			DeleteObject(unionRgn);
-
-			RECTL clipRect = { 0, 0, m_width, m_height };
-			HRESULT hr = pViewObject->Draw(DVASPECT_TRANSPARENT, 1, NULL, NULL, NULL, dc, &clipRect, &clipRect, NULL, 0);
-			assert(SUCCEEDED(hr));
-
 			pViewObject->Release();
 		}
 
@@ -653,128 +783,6 @@ void CFlashDXPlayer::SetReturnValue(const wchar_t* returnValue)
 {
 	m_flashInterface->SetReturnValue(returnValue);
 }
-
-/*
-//---------------------------------------------------------------------
-void CFlashDXPlayer::BeginFunctionCall(const wchar_t* functionName)
-{
-	m_invokeString.clear();
-	m_invokeString += L"<invoke name=\"";
-	m_invokeString += functionName;
-	m_invokeString += L"\" returntype=\"xml\"><arguments>";
-}
-
-//---------------------------------------------------------------------
-const wchar_t* CFlashDXPlayer::EndFunctionCall()
-{
-	m_invokeString += L"</arguments></invoke>";
-
-	BSTR response = NULL;
-	HRESULT hr = m_flashInterface->raw_CallFunction(_bstr_t(m_invokeString.c_str()), &response);
-	m_invokeString.clear();
-
-	if (response)
-	{
-		m_tempStorage.assign(response + 8);
-		std::wstring::size_type cutOff = m_tempStorage.find_last_of(L'<');
-		m_tempStorage.resize(cutOff);
-		return m_tempStorage.c_str();
-	}
-	return NULL;
-}
-
-//---------------------------------------------------------------------
-void CFlashDXPlayer::BeginReturn()
-{
-
-}
-
-//---------------------------------------------------------------------
-void CFlashDXPlayer::EndReturn()
-{
-
-}
-
-//---------------------------------------------------------------------
-void CFlashDXPlayer::PushArgumentString(const char* string)
-{
-	m_invokeString += L"<string>";
-
-	std::wstringstream os;
-	os << string;
-
-	m_invokeString += os.str();
-	m_invokeString += L"</string>";
-}
-
-//---------------------------------------------------------------------
-void CFlashDXPlayer::PushArgumentString(const wchar_t* string)
-{
-	m_invokeString += L"<string>";
-	m_invokeString += string;
-	m_invokeString += L"</string>";
-}
-
-//---------------------------------------------------------------------
-void CFlashDXPlayer::PushArgumentBool(bool boolean)
-{
-	m_invokeString += boolean ? L"<true/>" : L"<false/>";
-}
-
-//---------------------------------------------------------------------
-void CFlashDXPlayer::PushArgumentNumber(float number)
-{
-	m_invokeString += L"<number>";
-
-	std::wstringstream os;
-	os << number;
-
-	m_invokeString += os.str();
-	m_invokeString += L"</number>";
-}
-
-//---------------------------------------------------------------------
-const wchar_t* CFlashDXPlayer::CallFunction(const wchar_t* functionName,
-	Arg arg0, Arg arg1, Arg arg2, Arg arg3, Arg arg4, Arg arg5, Arg arg6, Arg arg7, Arg arg8, Arg arg9
-	)
-{
-	BeginFunctionCall(functionName);
-
-	struct _argumentsPusher
-	{
-		static void Push(IFlashDXPlayer *player,
-			Arg arg0, Arg arg1, Arg arg2, Arg arg3, Arg arg4, Arg arg5, Arg arg6, Arg arg7, Arg arg8, Arg arg9
-			)
-		{
-			if (arg0.type != Arg::eEmpty)
-			{
-				switch (arg0.type)
-				{
-				case Arg::eString:
-					player->PushArgumentString(arg0.s);
-					break;
-				case Arg::eWString:
-					player->PushArgumentString(arg0.w);
-					break;
-				case Arg::eNumber:
-					player->PushArgumentNumber(arg0.n);
-					break;
-				case Arg::eBool:
-					player->PushArgumentBool(arg0.b);
-					break;
-				}
-
-				Push(player, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, Arg());
-			}
-		}
-	};
-
-	_argumentsPusher::Push(this, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
-
-	return EndFunctionCall();
-}
-*/
-
 
 //---------------------------------------------------------------------
 void CFlashDXPlayer::AddEventHandler(struct IFlashDXEventHandler* pHandler)

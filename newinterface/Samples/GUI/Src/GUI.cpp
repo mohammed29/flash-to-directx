@@ -30,8 +30,8 @@ const int max_loadstring = 100;
 const int window_width = 700;
 const int window_height = 350;
 const int num_textures_in_rotation = 2;
-const wchar_t* movie_path = L"Data/SelfMade.swf";
-const bool use_transparency = false;
+const wchar_t* movie_path = L"Data/VT.swf";
+const IFlashDXPlayer::ETransparencyMode transparency_mode = IFlashDXPlayer::TMODE_OPAQUE;
 
 // Global Variables:
 HINSTANCE hInst;								// current instance
@@ -261,19 +261,19 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	//---------------------------------------------------------------------
 	g_flashPlayer->LoadMovie(movie_path);
 
-	g_flashPlayer->SetTransparencyMode(use_transparency ? IFlashDXPlayer::TMODE_TRANSPARENT : IFlashDXPlayer::TMODE_OPAQUE);
-	g_flashPlayer->SetBackgroundColor(0xFFFFFFFF);
+	g_flashPlayer->SetTransparencyMode(transparency_mode);
+	g_flashPlayer->SetBackgroundColor(RGB(0, 0, 0));
 
 	//---------------------------------------------------------------------
 	// Function call example
 	//---------------------------------------------------------------------
-	{
+	/*{
 		bool boolResult = g_playerASI->Call(L"test", true);
 		int numberResult = g_playerASI->Call(L"test1", 22);
 		std::wstring stringResult = g_playerASI->Call(L"test2", 123.456);
 		ASValue::Array arrayResult = g_playerASI->Call(L"test3", stringResult);
 		ASValue::Object objectResult = g_playerASI->Call(L"test4", arrayResult);
-	}
+	}*/
 
 	// Show window
 	ShowWindow(hWnd, nCmdShow);
@@ -515,14 +515,14 @@ bool RecreateTargets(unsigned int newWidth, unsigned int newHeight)
 		SAFE_RELEASE(g_texturesRotation[i]);
 
 		hr = g_device->CreateTexture(newWidth, newHeight, 1, 0,
-			use_transparency ? D3DFMT_A8R8G8B8 : D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &g_texturesRotation[i], NULL);
+			transparency_mode ? D3DFMT_A8R8G8B8 : D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &g_texturesRotation[i], NULL);
 		if (FAILED(hr))
 			return false;
 	}
 
 	SAFE_RELEASE(g_textureGUI);
 	hr = g_device->CreateTexture(newWidth, newHeight, 1, 0,
-		use_transparency ? D3DFMT_A8R8G8B8 : D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &g_textureGUI, NULL);
+		transparency_mode ? D3DFMT_A8R8G8B8 : D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &g_textureGUI, NULL);
 	if (FAILED(hr))
 		return false;
 

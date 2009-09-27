@@ -92,25 +92,8 @@ public:
 	virtual void SendKey(bool pressed, UINT_PTR virtualKey, LONG_PTR extended);
 	virtual void SendChar(UINT_PTR character, LONG_PTR extended);
 	virtual void EnableSound(bool enable);
-
 	virtual const wchar_t* CallFunction(const wchar_t* request);
 	virtual void SetReturnValue(const wchar_t* returnValue);
-
-/*
-	virtual void BeginFunctionCall(const wchar_t* functionName);
-	virtual const wchar_t* EndFunctionCall();
-	virtual void BeginReturn();
-	virtual void EndReturn();
-	virtual void PushArgumentString(const char* string);
-	virtual void PushArgumentString(const wchar_t* string);
-	virtual void PushArgumentBool(bool boolean);
-	virtual void PushArgumentNumber(float number);
-	virtual const wchar_t* CallFunction(const wchar_t* functionName,
-		Arg arg0 = Arg(), Arg arg1 = Arg(), Arg arg2 = Arg(), Arg arg3 = Arg(), Arg arg4 = Arg(),
-		Arg arg5 = Arg(), Arg arg6 = Arg(), Arg arg7 = Arg(), Arg arg8 = Arg(), Arg arg9 = Arg()
-		);
-*/
-
 	virtual void AddEventHandler(struct IFlashDXEventHandler* pHandler);
 	virtual void RemoveEventHandler(struct IFlashDXEventHandler* pHandler);
 	virtual struct IFlashDXEventHandler* GetEventHandlerByIndex(unsigned int index);
@@ -119,10 +102,13 @@ public:
 protected:
 	//---------------------------------------------------------------------
 	WPARAM CreateMouseWParam(WPARAM highWord);
+	//---------------------------------------------------------------------
+	bool ReduceNumDirtyRects();
 
 public:
 	unsigned int			m_width;
 	unsigned int			m_height;
+	ETransparencyMode		m_transpMode;
 
 	ShockwaveFlashObjects::IShockwaveFlash* m_flashInterface;
 
@@ -149,4 +135,12 @@ protected:
 	std::wstring			m_tempStorage;
 
 	std::vector<struct IFlashDXEventHandler*> m_eventHandlers;
+
+	// Alpha restore buffers
+	HDC						m_alphaBlackDC;
+	HBITMAP					m_alphaBlackBitmap;
+	BYTE*					m_alphaBlackBuffer;
+	HDC						m_alphaWhiteDC;
+	HBITMAP					m_alphaWhiteBitmap;
+	BYTE*					m_alphaWhiteBuffer;
 };

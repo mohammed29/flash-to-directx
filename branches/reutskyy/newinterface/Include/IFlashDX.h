@@ -138,8 +138,9 @@ struct IFlashDXPlayer
 	/// if you want proper transparency. Otherwise use X8R8G8B8 texture or any equivalent with disabled alpha channel.
 	enum ETransparencyMode
 	{
-		TMODE_OPAQUE = 0,		///< Alpha is disabled. Use texture surface format with disabled alpha (such X8R8G8B8).
-		TMODE_TRANSPARENT = 1
+		TMODE_OPAQUE = 0,		///< Alpha is disabled. Use texture surface format with disabled alpha (such as X8R8G8B8).
+		TMODE_TRANSPARENT = 1,	///< Basic alpha, no semi-transparency.
+		TMODE_FULL_ALPHA = 2,	///< Alpha fully supported. A bit slower (not much, though) than TMODE_TRANSPARENT.
 	};
 
 	//---------------------------------------------------------------------

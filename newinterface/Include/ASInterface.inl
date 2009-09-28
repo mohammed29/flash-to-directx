@@ -200,12 +200,14 @@ struct ASValue::_Data
 	inline operator Array() const
 	{
 		assert(type == 3);
-		return *(Array*)data;
+		if (type == 3) return *(Array*)data;
+		return Array();
 	}
 	inline operator Object() const
 	{
 		assert(type == 4);
-		return *(Object*)data;
+		if (type == 4) return *(Object*)data;
+		return Object();
 	}
 };
 

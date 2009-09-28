@@ -31,7 +31,7 @@ const int window_width = 700;
 const int window_height = 350;
 const int num_textures_in_rotation = 2;
 const wchar_t* movie_path = L"Data/VT.swf";
-const IFlashDXPlayer::ETransparencyMode transparency_mode = IFlashDXPlayer::TMODE_OPAQUE;
+const IFlashDXPlayer::ETransparencyMode transparency_mode = IFlashDXPlayer::TMODE_FULL_ALPHA;
 
 // Global Variables:
 HINSTANCE hInst;								// current instance
@@ -267,13 +267,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	//---------------------------------------------------------------------
 	// Function call example
 	//---------------------------------------------------------------------
-	/*{
+	{
 		bool boolResult = g_playerASI->Call(L"test", true);
 		int numberResult = g_playerASI->Call(L"test1", 22);
 		std::wstring stringResult = g_playerASI->Call(L"test2", 123.456);
 		ASValue::Array arrayResult = g_playerASI->Call(L"test3", stringResult);
 		ASValue::Object objectResult = g_playerASI->Call(L"test4", arrayResult);
-	}*/
+	}/**/
 
 	// Show window
 	ShowWindow(hWnd, nCmdShow);

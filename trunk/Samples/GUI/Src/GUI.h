@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------
-// Copyright (c) 2009 Maksym Diachenko, Viktor Reutskyy, Anton Suchov
+// Copyright (c) 2009 Maksym Diachenko, Viktor Reutskyy, Anton Suchov.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 #include "../Resources/Resource.h"
 #include "../../../Include/IFlashDX.h"
+#include "../../../Include/ASInterface.h"
 
 #ifndef SAFE_RELEASE
 #define SAFE_RELEASE(value) if (value) { (value)->Release(); (value) = NULL; }

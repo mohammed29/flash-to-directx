@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------
-// Copyright (c) 2009 Maksym Diachenko, Viktor Reutskyy, Anton Suchov
+// Copyright (c) 2009 Maksym Diachenko, Viktor Reutskyy, Anton Suchov.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +30,8 @@ const int max_loadstring = 100;
 const int window_width = 700;
 const int window_height = 350;
 const int num_textures_in_rotation = 2;
-const wchar_t* movie_path = L"Data/SelfMade.swf";
-const bool use_transparency = false;
+const wchar_t* movie_path = L"Data/VT.swf";
+const IFlashDXPlayer::ETransparencyMode transparency_mode = IFlashDXPlayer::TMODE_FULL_ALPHA;
 
 // Global Variables:
 HINSTANCE hInst;								// current instance
@@ -41,6 +41,8 @@ TCHAR szWindowClass[max_loadstring];			// the main window class name
 
 IFlashDX*			g_flashDX = NULL;
 IFlashDXPlayer*		g_flashPlayer = NULL;
+
+ASInterface*		g_playerASI;
 
 IDirect3D9*			g_direct3D = NULL;
 IDirect3DDevice9*	g_device = NULL;
@@ -222,32 +224,56 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		return FALSE;
 	}
 
+	g_playerASI = new ASInterface(g_flashPlayer);
+
+	//---------------------------------------------------------------------
+	// Function callbacks example
+	//---------------------------------------------------------------------
+	{
+		struct TestCallbacks
+		{
+			static void test1(bool yes, ASValue::Array arr)
+			{
+			}
+			int test2()
+			{
+				return 0;
+			}
+			void command1(const wchar_t*)
+			{
+			}
+			static void fsCommandDef(const wchar_t*, const wchar_t*)
+			{
+			}
+		};
+
+		TestCallbacks s_testCallbacks;
+
+		g_playerASI->AddCallback(L"test1", &TestCallbacks::test1);
+		g_playerASI->AddCallback(L"test2", s_testCallbacks, &TestCallbacks::test2);
+
+		g_playerASI->AddFSCCallback(L"command1", s_testCallbacks, &TestCallbacks::command1);
+		g_playerASI->SetDefaultFSCCallback(&TestCallbacks::fsCommandDef);
+	}
+
+	//---------------------------------------------------------------------
+	// Load and play movie
+	//---------------------------------------------------------------------
 	g_flashPlayer->LoadMovie(movie_path);
 
-	g_flashPlayer->SetTransparencyMode(use_transparency ? IFlashDXPlayer::TMODE_TRANSPARENT : IFlashDXPlayer::TMODE_OPAQUE);
-	g_flashPlayer->SetBackgroundColor(0xFFFFFFFF);
+	g_flashPlayer->SetTransparencyMode(transparency_mode);
+	g_flashPlayer->SetBackgroundColor(RGB(0, 0, 0));
 
-	// Function call
-	g_flashPlayer->BeginFunctionCall(L"testFunctionCall");
-	g_flashPlayer->PushArgumentString("String");
-	g_flashPlayer->PushArgumentString(L"WString");
-	g_flashPlayer->PushArgumentNumber(10.0f);
-	g_flashPlayer->PushArgumentBool(true);
-
-	std::wstring result;
-	if (const wchar_t* pResult = g_flashPlayer->EndFunctionCall())
-		result = pResult;
-
-	result += L"\n";
-	OutputDebugString(result.c_str());
-
-	// Easy way of function call
-	std::wstring result2;
-	if (const wchar_t* pResult = g_flashPlayer->CallFunction(L"testFunctionCall", "String", L"WString", 10, true))
-		result2 = pResult;
-
-	result2 += L"\n";
-	OutputDebugString(result2.c_str());
+	//---------------------------------------------------------------------
+	// Function call example
+	//---------------------------------------------------------------------
+	/*{
+		bool boolResult = g_playerASI->Call(L"test", true);
+		int numberResult = g_playerASI->Call(L"test1", 22);
+		std::wstring stringResult = g_playerASI->Call(L"test2", 123.456);
+		ASValue::Array arrayResult = g_playerASI->Call(L"test3", stringResult);
+		ASValue::Object objectResult = g_playerASI->Call(L"test4", arrayResult);
+	}*/
 
 	// Show window
 	ShowWindow(hWnd, nCmdShow);
@@ -259,6 +285,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //---------------------------------------------------------------------
 void ExitInstance()
 {
+	delete g_playerASI;
+
 	g_flashDX->DestroyPlayer(g_flashPlayer);
 
 	for (int i = 0; i < num_textures_in_rotation; ++i)
@@ -304,15 +332,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		return 0;
 	case WM_KEYDOWN:
 		if (g_flashPlayer)
-			g_flashPlayer->SendKey(true, (int)wParam, (int)lParam);
+			g_flashPlayer->SendKey(true, wParam, lParam);
 		return 0;
 	case WM_KEYUP:
 		if (g_flashPlayer)
-			g_flashPlayer->SendKey(false, (int)wParam, (int)lParam);
+			g_flashPlayer->SendKey(false, wParam, lParam);
 		return 0;
 	case WM_CHAR:
 		if (g_flashPlayer)
-			g_flashPlayer->SendChar((int)wParam, (int)lParam);
+			g_flashPlayer->SendChar(wParam, lParam);
 		return 0;
 	case WM_SIZE:
 		if (g_flashPlayer)
@@ -387,12 +415,6 @@ void DrawFrame()
 
 		pDestSurface->Release();
 		pSrcSurface->Release();
-
-		/*for (unsigned int i = 0; i < g_flashPlayer->GetNumDirtyRects(); ++i)
-			g_textureGUI->AddDirtyRect(g_flashPlayer->GetDirtyRect(i));
-
-		hr = g_device->UpdateTexture(pTexToUpdate, g_textureGUI);
-		assert(SUCCEEDED(hr));*/
 	}
 
 	//---------------------------------------------------------------------
@@ -437,7 +459,7 @@ void DrawFrame()
 	// Begin frame
 	hr = g_device->BeginScene();
 	assert(SUCCEEDED(hr));
-	hr = g_device->Clear(0, NULL, D3DCLEAR_TARGET, 0xFF00FF00, 1.0f, 0);
+	hr = g_device->Clear(0, NULL, D3DCLEAR_TARGET, 0xFF000000, 1.0f, 0);
 	assert(SUCCEEDED(hr));
 
 	// Draw the quad
@@ -487,14 +509,14 @@ bool RecreateTargets(unsigned int newWidth, unsigned int newHeight)
 		SAFE_RELEASE(g_texturesRotation[i]);
 
 		hr = g_device->CreateTexture(newWidth, newHeight, 1, 0,
-			use_transparency ? D3DFMT_A8R8G8B8 : D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &g_texturesRotation[i], NULL);
+			transparency_mode ? D3DFMT_A8R8G8B8 : D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &g_texturesRotation[i], NULL);
 		if (FAILED(hr))
 			return false;
 	}
 
 	SAFE_RELEASE(g_textureGUI);
 	hr = g_device->CreateTexture(newWidth, newHeight, 1, 0,
-		use_transparency ? D3DFMT_A8R8G8B8 : D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &g_textureGUI, NULL);
+		transparency_mode ? D3DFMT_A8R8G8B8 : D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &g_textureGUI, NULL);
 	if (FAILED(hr))
 		return false;
 

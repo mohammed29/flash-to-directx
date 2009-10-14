@@ -267,13 +267,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	//---------------------------------------------------------------------
 	// Function call example
 	//---------------------------------------------------------------------
-	{
+	/*{
 		bool boolResult = g_playerASI->Call(L"test", true);
 		int numberResult = g_playerASI->Call(L"test1", 22);
 		std::wstring stringResult = g_playerASI->Call(L"test2", 123.456);
 		ASValue::Array arrayResult = g_playerASI->Call(L"test3", stringResult);
 		ASValue::Object objectResult = g_playerASI->Call(L"test4", arrayResult);
-	}/**/
+	}*/
 
 	// Show window
 	ShowWindow(hWnd, nCmdShow);
@@ -415,12 +415,6 @@ void DrawFrame()
 
 		pDestSurface->Release();
 		pSrcSurface->Release();
-
-		/*for (unsigned int i = 0; i < g_flashPlayer->GetNumDirtyRects(); ++i)
-			g_textureGUI->AddDirtyRect(g_flashPlayer->GetDirtyRect(i));
-
-		hr = g_device->UpdateTexture(pTexToUpdate, g_textureGUI);
-		assert(SUCCEEDED(hr));*/
 	}
 
 	//---------------------------------------------------------------------
@@ -465,7 +459,7 @@ void DrawFrame()
 	// Begin frame
 	hr = g_device->BeginScene();
 	assert(SUCCEEDED(hr));
-	hr = g_device->Clear(0, NULL, D3DCLEAR_TARGET, 0xFF00FF00, 1.0f, 0);
+	hr = g_device->Clear(0, NULL, D3DCLEAR_TARGET, 0xFF000000, 1.0f, 0);
 	assert(SUCCEEDED(hr));
 
 	// Draw the quad

@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------
-// Copyright (c) 2009 Maksym Diachenko, Viktor Reutskyy, Anton Suchov
+// Copyright (c) 2009 Maksym Diachenko, Viktor Reutskyy, Anton Suchov.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -119,6 +119,11 @@ struct IFlashDXPlayer
 	};
 
 	//---------------------------------------------------------------------
+	/// @brief				Gets quality of the player's output.
+	/// @return				Quality settings.
+	virtual EQuality GetQuality() const = 0;
+
+	//---------------------------------------------------------------------
 	/// @brief				Sets quality of the player's output.
 	/// @param quality		Quality settings.
 	virtual void SetQuality(EQuality quality) = 0;
@@ -133,9 +138,15 @@ struct IFlashDXPlayer
 	/// if you want proper transparency. Otherwise use X8R8G8B8 texture or any equivalent with disabled alpha channel.
 	enum ETransparencyMode
 	{
-		TMODE_OPAQUE = 0,		///< Alpha is disabled. Use texture surface format with disabled alpha (such X8R8G8B8).
-		TMODE_TRANSPARENT = 1
+		TMODE_OPAQUE = 0,		///< Alpha is disabled. Use texture surface format with disabled alpha (such as X8R8G8B8).
+		TMODE_TRANSPARENT = 1,	///< Basic alpha, no semi-transparency.
+		TMODE_FULL_ALPHA = 2,	///< Alpha fully supported. A bit slower (not much, though) than TMODE_TRANSPARENT.
 	};
+
+	//---------------------------------------------------------------------
+	/// @brief				Gets transparency mode for the player.
+	/// @return				Transparency mode.
+	virtual ETransparencyMode GetTransparencyMode() const = 0;
 
 	//---------------------------------------------------------------------
 	/// @brief				Sets transparency mode for the player.
@@ -337,13 +348,13 @@ struct IFlashDXPlayer
 	/// @param virtualKey	Virtual key (see WM_KEYUP/WM_KEYDOWN event).
 	/// @param extended		Extended data (see WM_KEYUP/WM_KEYDOWN event).
 	/// @return				void
-	virtual void SendKey(bool pressed, int virtualKey, int extended) = 0;
+	virtual void SendKey(bool pressed, UINT_PTR virtualKey, LONG_PTR extended) = 0;
 
 	//---------------------------------------------------------------------
 	/// @brief				Sends character to flash control.
 	/// @param character	Character to send.
 	/// @param extended		Extended data (see WM_CHAR event).
-	virtual void SendChar(int character, int extended) = 0;
+	virtual void SendChar(UINT_PTR character, LONG_PTR extended) = 0;
 
 	//---------------------------------------------------------------------
 	/// @brief				Enables/disables sound for flash control.
@@ -351,110 +362,32 @@ struct IFlashDXPlayer
 	virtual void EnableSound(bool enable) = 0;
 
 	//---------------------------------------------------------------------
-	/// @brief				Begins passing of the arguments to specified function.
-	/// @param functionName	Function to call.
-	/// @sa					PushArgument*(), CallFunction()
+	/// @brief				Calls Action Script function.
+	/// @param request		Function call XML.
 	///
-	/// Use CallFunction() wrapper for easy function calling.
-	virtual void BeginFunctionCall(const wchar_t* functionName) = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Ends passing of the arguments and calls the function.
-	/// @return				Result of the call in temporarily storage. Copy it if you wish to keep it.
+	/// Please use provided ASInterface helper to ease the task of calling and handling Flash events.
 	///
-	/// Use CallFunction() wrapper for easy function calling.
-	virtual const wchar_t* EndFunctionCall() = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Begins passing of the return values to Action Script.
-	/// @sa					PushArgument*()
+	/// or
 	///
-	/// Use PushArgument*() functions to pass return values to Action Script.
-	virtual void BeginReturn() = 0;
+	/// See "The external API's XML format".
+	/// http://livedocs.adobe.com/flash/9.0/main/wwhelp/wwhimpl/common/html/wwhelp.htm?context=LiveDocs_Parts&file=00000344.html
+	virtual const wchar_t* CallFunction(const wchar_t* request) = 0;
 
 	//---------------------------------------------------------------------
-	/// @brief				Ends passing of the return values to Action Script.
-	virtual void EndReturn() = 0;
+	/// @brief				Sets return value for Action Script call.
+	/// @param returnValue	Return value XML.
+	///
+	/// Please use provided ASInterface helper to ease the task of calling and handling Flash events.
+	///
+	/// or
+	///
+	/// See "The external API's XML format".
+	/// http://livedocs.adobe.com/flash/9.0/main/wwhelp/wwhimpl/common/html/wwhelp.htm?context=LiveDocs_Parts&file=00000344.html
+	/// Should be called only from IFlashDXEventHandler::FlashCall().
+	virtual void SetReturnValue(const wchar_t* returnValue) = 0;
 
 	//---------------------------------------------------------------------
-	/// @brief				Pushes string argument.
-	/// @param string		String to push.
-	/// @sa					BeginFunctionCall(), BeginReturn()
-	virtual void PushArgumentString(const char* string) = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Pushes string argument.
-	/// @param string		String to push.
-	/// @sa					BeginFunctionCall(), BeginReturn()
-	virtual void PushArgumentString(const wchar_t* string) = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Pushes boolean argument.
-	/// @param boolean		Boolean to push.
-	/// @sa					BeginFunctionCall(), BeginReturn()
-	virtual void PushArgumentBool(bool boolean) = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Pushes number argument.
-	/// @param number		Number to push.
-	/// @sa					BeginFunctionCall(), BeginReturn()
-	virtual void PushArgumentNumber(float number) = 0;
-
-	//---------------------------------------------------------------------
-	// TODO: arrays passing
-	//---------------------------------------------------------------------
-	// TODO: null passing
-
-	//---------------------------------------------------------------------
-	/// Automatic argument conversion helper.
-	struct Arg
-	{
-		enum EType
-		{
-			eEmpty = 0,
-			eString,
-			eWString,
-			eNumber,
-			eBool,
-		};
-
-		EType type;
-
-		union
-		{
-			const char* s;
-			const wchar_t* w;
-			float n;
-			bool b;
-		};
-
-		Arg() : type(eEmpty) {}
-		Arg(const char* _s) : type(eString), s(_s) {}
-		Arg(const wchar_t* _w) : type(eWString), w(_w) {}
-		Arg(char _n) : type(eNumber), n((float)_n) {}
-		Arg(unsigned char _n) : type(eNumber), n((float)_n) {}
-		Arg(short _n) : type(eNumber), n((float)_n) {}
-		Arg(unsigned short _n) : type(eNumber), n((float)_n) {}
-		Arg(int _n) : type(eNumber), n((float)_n) {}
-		Arg(unsigned int _n) : type(eNumber), n((float)_n) {}
-		Arg(__int64 _n) : type(eNumber), n((float)_n) {}
-		Arg(unsigned __int64 _n) : type(eNumber), n((float)_n) {}
-		Arg(float _n) : type(eNumber), n(_n) {}
-		Arg(double _n) : type(eNumber), n((float)_n) {}
-		Arg(bool _b) : type(eBool), b(_b) {}
-	};
-
-	//---------------------------------------------------------------------
-	/// @brief				Wrapper around BeginFunctionCall()/EndFunctionCall().
-	/// @param functionName	Function to call.
-	/// @return				Result of the call in temporarily storage. Copy it if you wish to keep it.
-	virtual const wchar_t* CallFunction(const wchar_t* functionName,
-		Arg arg0 = Arg(), Arg arg1 = Arg(), Arg arg2 = Arg(), Arg arg3 = Arg(), Arg arg4 = Arg(),
-		Arg arg5 = Arg(), Arg arg6 = Arg(), Arg arg7 = Arg(), Arg arg8 = Arg(), Arg arg9 = Arg()
-		) = 0;
-
-	//---------------------------------------------------------------------
-	/// @brief				Adds FSCommand() event handler.
+	/// @brief				Adds event handler.
 	/// @param pHandler		Handler interface.
 	virtual void AddEventHandler(struct IFlashDXEventHandler* pHandler) = 0;
 
@@ -481,10 +414,27 @@ struct IFlashDXPlayer
 //---------------------------------------------------------------------
 struct IFlashDXEventHandler
 {
-    enum EEventType
-    {
-        EVENT_FUNCTION_CALL = 0,
-    };
+	//---------------------------------------------------------------------
+	/// @brief				Called when Flash Action Script uses ExternalInterface.call().
+	/// @param request		Call XML data.
+	/// @return				Should be NOERROR if call was processed successfully or E_NOTIMPL if request is not
+	///						recognized. Or any other valid COM error.
+	///
+	/// Please use provided ASInterface helper to ease the task of calling and handling Flash events.
+	///
+	/// or
+	///
+	/// See "The external API's XML format".
+	/// http://livedocs.adobe.com/flash/9.0/main/wwhelp/wwhimpl/common/html/wwhelp.htm?context=LiveDocs_Parts&file=00000344.html
+	virtual HRESULT FlashCall(const wchar_t* request) = 0;
 
-
+	//---------------------------------------------------------------------
+	/// @brief				Called when Flash Action Script uses fscommand().
+	/// @param command		Command string.
+	/// @param args			Arguments string.
+	/// @return				Should be NOERROR if call was processed successfully or E_NOTIMPL if request is not
+	///						recognized. Or any other valid COM error.
+	///
+	/// Please use provided ASInterface helper to ease the task of calling and handling Flash events.
+	virtual HRESULT FSCommand(const wchar_t* command, const wchar_t* args) = 0;
 };

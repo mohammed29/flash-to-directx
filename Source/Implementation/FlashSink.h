@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------
-// Copyright (c) 2009 Maksym Diachenko, Viktor Reutskyy, Anton Suchov
+// Copyright (c) 2009 Maksym Diachenko, Viktor Reutskyy, Anton Suchov.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -67,16 +67,4 @@ public:
 	virtual HRESULT STDMETHODCALLTYPE Invoke(DISPID dispIdMember, REFIID riid, LCID lcid,
 		WORD wFlags, ::DISPPARAMS __RPC_FAR *pDispParams, VARIANT __RPC_FAR *pVarResult,
 		::EXCEPINFO __RPC_FAR *pExcepInfo, UINT __RPC_FAR *puArgErr);
-
-	//---------------------------------------------------------------------
-	HRESULT OnReadyStateChange(long newState);
-	
-	//---------------------------------------------------------------------
-	HRESULT OnProgress(long percentDone);
-
-	//---------------------------------------------------------------------
-	HRESULT FSCommand(_bstr_t command, _bstr_t args);
-
-	//---------------------------------------------------------------------
-	HRESULT FlashCall(_bstr_t request);
 };

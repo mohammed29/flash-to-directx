@@ -1,4 +1,5 @@
 #summary Compilation instructions.
+#labels Featured
 
 = Introduction =
 

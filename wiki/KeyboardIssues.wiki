@@ -1,5 +1,5 @@
 #summary Keyboard issues.
-#labels Phase-Implementation
+#labels Featured
 
 = Introduction =
 

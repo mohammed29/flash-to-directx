@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="windows-1251"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="GUI"
 	ProjectGUID="{2D9BC145-14FF-4B62-8738-E764FC669DEF}"
 	RootNamespace="GUI"

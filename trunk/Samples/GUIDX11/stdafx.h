@@ -48,8 +48,6 @@
 
 #include <windows.h>
 #include <D3D11.h>
-// #include <D2D1.h>
-#include <DXErr.h>
 #include <DXGI.h>
 #include <D3DX10math.h>
 #include <D3Dcompiler.h>

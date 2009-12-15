@@ -37,5 +37,14 @@
 #endif
 
 
-LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 bool RecreateTargets(unsigned int newWidth, unsigned int newHeight);
+void DrawFrame();
+bool InitFlash();
+void DeinitFlash();
+
+HRESULT InitDevice();
+void DeinitDevice();
+
+HRESULT InitWindow( HINSTANCE hInstance, int nCmdShow );
+HRESULT CompileShaderFromFile( WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut );

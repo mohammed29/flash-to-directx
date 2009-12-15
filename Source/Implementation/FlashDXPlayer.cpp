@@ -141,11 +141,8 @@ CFlashDXPlayer::~CFlashDXPlayer()
 //---------------------------------------------------------------------
 void CFlashDXPlayer::AddDirtyRect(const RECT* pRect)
 {
-	if (pRect && IsRectEmpty(pRect))
-		return;
-
 	m_dirtyFlag = true;
-
+	
 	if (pRect == NULL)
 	{
 		RECT rect = { 0, 0, m_width, m_height };
@@ -155,26 +152,34 @@ void CFlashDXPlayer::AddDirtyRect(const RECT* pRect)
 	}
 	else
 	{
+		RECT screenRect = {0, 0, m_width, m_height};
+
+		RECT newRect = {0};
+		IntersectRect(&newRect, pRect, &screenRect);
+
+		if (IsRectEmpty(&newRect))
+			return;
+
 		#define MIN_MACRO(x, y) ((x) < (y) ? (x) : (y))
 		#define MAX_MACRO(x, y) ((x) > (y) ? (x) : (y))
 
 		for (std::vector<RECT>::iterator it = m_dirtyRects.begin(); it != m_dirtyRects.end(); ++it)
-			if (it->left <= pRect->left && it->top <= pRect->top &&
-				it->right >= pRect->right && it->bottom >= pRect->bottom)
+			if (it->left <= newRect.left && it->top <= newRect.top &&
+				it->right >= newRect.right && it->bottom >= newRect.bottom)
 			{
 				return; // already included
 			}
 
-		RECT rect = { pRect->left, pRect->top, pRect->right, pRect->bottom };
+		RECT rect = { newRect.left, newRect.top, newRect.right, newRect.bottom };
 		rect.left = MAX_MACRO(rect.left, 0);
 		rect.top = MAX_MACRO(rect.top, 0);
 		rect.right = MIN_MACRO(rect.right, (LONG)m_width);
 		rect.bottom = MIN_MACRO(rect.bottom, (LONG)m_height);
 
-		m_dirtyUnionRect.left = MIN_MACRO(m_dirtyUnionRect.left, pRect->left);
-		m_dirtyUnionRect.top = MIN_MACRO(m_dirtyUnionRect.top, pRect->top);
-		m_dirtyUnionRect.right = MAX_MACRO(m_dirtyUnionRect.right, pRect->right);
-		m_dirtyUnionRect.bottom = MAX_MACRO(m_dirtyUnionRect.bottom, pRect->bottom);
+		m_dirtyUnionRect.left = MIN_MACRO(m_dirtyUnionRect.left, newRect.left);
+		m_dirtyUnionRect.top = MIN_MACRO(m_dirtyUnionRect.top, newRect.top);
+		m_dirtyUnionRect.right = MAX_MACRO(m_dirtyUnionRect.right, newRect.right);
+		m_dirtyUnionRect.bottom = MAX_MACRO(m_dirtyUnionRect.bottom, newRect.bottom);
 
 		m_dirtyRects.push_back(rect);
 	}

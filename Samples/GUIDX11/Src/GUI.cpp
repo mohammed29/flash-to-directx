@@ -55,7 +55,7 @@ ID3D11InputLayout*                  g_pVertexLayout = NULL;
 ID3D11Buffer*                       g_pVertexBuffer = NULL;
 ID3D11Buffer*                       g_pIndexBuffer = NULL;
 
-size_t g_indexCount;
+unsigned g_indexCount;
 
 struct Vertex
 {
